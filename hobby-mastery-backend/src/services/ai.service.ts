@@ -12,7 +12,7 @@ const MODELS = [
 ];
 
 const callLlm = async (prompt: string): Promise<string> => {
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   for (const model of MODELS) {
     try {
@@ -53,7 +53,7 @@ const callLlm = async (prompt: string): Promise<string> => {
 };
 
 export const generateLearningPlan = async (hobby: string, level: string) => {
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return getMockPlan(hobby, level);
   }
