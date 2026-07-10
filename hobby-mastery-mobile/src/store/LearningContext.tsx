@@ -24,7 +24,6 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
     const loadInitialData = async () => {
       const savedPlan = await StorageService.loadPlan();
       if (savedPlan) {
-        // Auto-migration: if the plan uses the old WebView schema (missing lesson), wipe it
         if (savedPlan.techniques && savedPlan.techniques.length > 0 && !savedPlan.techniques[0].lesson) {
           console.log("Old plan schema detected. Wiping plan.");
           await StorageService.clearPlan();
@@ -46,15 +45,13 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
   const updateTechniqueStatus = async (techniqueId: string, status: TechniqueStatus) => {
     if (!plan) return;
 
-    const updatedTechniques = plan.techniques.map(tech => 
+    const updatedTechniques = plan.techniques.map(tech =>
       tech.id === techniqueId ? { ...tech, status } : tech
     );
 
     let updatedPlan = { ...plan, techniques: updatedTechniques };
     setPlanState(updatedPlan);
     await StorageService.savePlan(updatedPlan);
-
-    // Adaptive Plan Logic: Check if we hit the threshold of 3 skipped techniques
     const skippedTechniques = updatedTechniques.filter(t => t.status === 'skipped');
     if (skippedTechniques.length >= 3 && !isRegenerating) {
       regeneratePlan(updatedPlan, skippedTechniques.map(t => t.name));
@@ -64,20 +61,19 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
   const regeneratePlan = async (currentPlan: LearningPlan, skippedNames: string[]) => {
     setIsRegenerating(true);
     Alert.alert(
-      "Adapting Plan 🧠",
+      "Adapting Plan ",
       "We noticed a few techniques were too hard. Regenerating your plan to focus on easier prerequisites..."
     );
 
     try {
       const newPlan = await AIService.generateLearningPlan(
-        currentPlan.hobby, 
-        currentPlan.targetLevel, 
+        currentPlan.hobby,
+        currentPlan.targetLevel,
         skippedNames
       );
 
-      // We preserve the mastered techniques and the streak count, and append the new adapted plan
       const masteredTechniques = currentPlan.techniques.filter(t => t.status === 'mastered');
-      
+
       const adaptedPlan: LearningPlan = {
         ...newPlan,
         streakCount: currentPlan.streakCount,

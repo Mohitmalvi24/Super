@@ -26,7 +26,7 @@ A mobile application to help you master any hobby without feeling overwhelmed. E
 ```bash
 cd hobby-mastery-backend
 npm install
-cp .env.example .env   # Add your Groq API key
+cp .env.example .env 
 npm run dev
 ```
 

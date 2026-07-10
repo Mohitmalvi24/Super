@@ -1,8 +1,3 @@
-/**
- * Response shape expected from the LLM for each technique.
- * The AI generates full lesson content instead of search terms,
- * so the mobile app never needs to open external URLs.
- */
 interface AITechniqueResponse {
   name: string;
   description: string;

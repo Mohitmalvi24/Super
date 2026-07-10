@@ -18,7 +18,7 @@ export const OnboardingScreen = () => {
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       () => {
         Animated.timing(slideAnim, {
-          toValue: -100, // Adjusted shift up based on feedback
+          toValue: -100,
           duration: 250,
           useNativeDriver: true,
         }).start();
@@ -49,7 +49,6 @@ export const OnboardingScreen = () => {
     setIsGenerating(true);
     Keyboard.dismiss();
     try {
-      // Defaulting to beginner for a simpler flow that matches the minimalist design
       const plan = await AIService.generateLearningPlan(hobby.trim(), 'beginner');
       await setPlan(plan);
     } catch (error) {
@@ -124,7 +123,7 @@ export const OnboardingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F8F4', // Light minimalist background matching image
+    backgroundColor: '#F7F8F4',
   },
   scrollContent: {
     paddingHorizontal: Theme.spacing.xl,
@@ -176,7 +175,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 10,
-    marginBottom: Theme.spacing.xl, // Reduced margin to pull button up
+    marginBottom: Theme.spacing.xl,
   },
   suggestionPill: {
     backgroundColor: '#E6E9E0',
@@ -190,11 +189,11 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   footerContainer: {
-    marginTop: Theme.spacing.sm, // Changed from 'auto' to pull button up
+    marginTop: Theme.spacing.sm,
     alignItems: 'center',
   },
   button: {
-    backgroundColor: '#43503F', // Dark muted green matching image
+    backgroundColor: '#43503F',
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: Theme.borderRadius.md,
