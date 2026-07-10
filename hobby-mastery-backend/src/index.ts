@@ -13,13 +13,13 @@ app.use(express.json());
 
 app.post('/api/plan', async (req: Request, res: Response) => {
   try {
-    const { hobby, level } = req.body;
+    const { hobby, level, skippedTechniques } = req.body;
     
     if (!hobby || !level) {
       return res.status(400).json({ error: 'Missing hobby or level' });
     }
 
-    const plan = await generateLearningPlan(hobby, level);
+    const plan = await generateLearningPlan(hobby, level, skippedTechniques || []);
     res.json(plan);
   } catch (error) {
     console.error('Error generating plan:', error);
