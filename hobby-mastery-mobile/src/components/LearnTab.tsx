@@ -78,6 +78,11 @@ export const LearnTab = ({ proTips, savedTips, setSavedTips }: LearnTabProps) =>
     return () => { Speech.stop(); };
   }, []);
 
+  const handleScrollBeginDrag = useCallback(() => {
+    Speech.stop();
+    setPlayingIndex(-1);
+  }, []);
+
   const toggleAudio = useCallback((index: number, text: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
@@ -141,6 +146,7 @@ export const LearnTab = ({ proTips, savedTips, setSavedTips }: LearnTabProps) =>
         keyExtractor={(_, i) => String(i)}
         pagingEnabled
         showsVerticalScrollIndicator={false}
+        onScrollBeginDrag={handleScrollBeginDrag}
         getItemLayout={(_, index) => ({
           length: containerHeight,
           offset: containerHeight * index,
