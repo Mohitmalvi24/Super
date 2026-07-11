@@ -38,6 +38,8 @@ export const AIService = {
           estimatedMinutes: 15,
           level: level,
           status: 'not-started',
+          emoji: '📖',
+          visualDescription: 'A generic visualization of the technique.',
           lesson: {
             overview: `This lesson introduces the foundational principles of ${hobby}. Understanding these basics is essential before moving to advanced techniques.`,
             steps: [
@@ -70,6 +72,8 @@ export const AIService = {
           estimatedMinutes: 20,
           level: level,
           status: 'not-started',
+          emoji: '📖',
+          visualDescription: 'A generic visualization of the technique.',
           lesson: {
             overview: `A structured practice routine separates amateurs from experts. This lesson covers how to optimize your practice time for maximum growth.`,
             steps: [

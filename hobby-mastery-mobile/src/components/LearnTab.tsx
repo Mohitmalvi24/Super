@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Theme } from '../utils/theme';
 import { Technique, LearningPlan } from '../types';
+import { TechniqueVisual } from './TechniqueVisual';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -32,7 +33,7 @@ export const LearnTab = ({ plan, onOpenStory }: LearnTabProps) => {
             [Theme.colors.palette.emerald[500], Theme.colors.palette.emerald[700]],
             [Theme.colors.palette.amber[500], Theme.colors.palette.amber[700]],
             [Theme.colors.palette.sky[500], Theme.colors.palette.sky[700]],
-            [Theme.colors.palette.rose[500], Theme.colors.palette.rose[700]],
+            [Theme.colors.palette.rose[400], Theme.colors.palette.rose[500]],
           ][idx % 5];
 
           return (

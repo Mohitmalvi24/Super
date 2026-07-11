@@ -287,6 +287,7 @@ export const DashboardScreen = () => {
           onBack={() => setActiveLessonId(null)}
           onComplete={() => handleLessonComplete(tech.id)}
           totalXp={totalXp}
+          hobby={plan.hobby}
         />
       );
     }

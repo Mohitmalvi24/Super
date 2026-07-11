@@ -29,7 +29,7 @@ export const PracticeDrillScreen = ({ technique, onBack, onComplete }: PracticeD
   }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (isActive && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(prev => prev - 1);
@@ -43,7 +43,9 @@ export const PracticeDrillScreen = ({ technique, onBack, onComplete }: PracticeD
     } else if (timeLeft === 0) {
       setIsActive(false);
     }
-    return () => clearInterval(interval);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [isActive, timeLeft]);
 
   const toggleTimer = () => setIsActive(!isActive);

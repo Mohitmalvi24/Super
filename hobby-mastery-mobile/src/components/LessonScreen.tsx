@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated,
+  View, Text, StyleSheet, TouchableOpacity, Animated, Image,
   ScrollView, Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '../utils/theme';
 import { Technique } from '../types';
+import { VisualImageService } from '../services/VisualImageService';
+import { LearningContext } from '../store/LearningContext';
+import { useContext } from 'react';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -15,16 +18,22 @@ interface LessonScreenProps {
   onBack: () => void;
   onComplete: () => void;
   totalXp: number;
+  hobby?: string;
 }
 
-export const LessonScreen = ({ technique, onBack, onComplete, totalXp }: LessonScreenProps) => {
+export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: LessonScreenProps) => {
+  const ctx = useContext(LearningContext);
+  const plan = ctx?.plan;
   const [activeStep, setActiveStep] = useState(0);
+  const [imageFailed, setImageFailed] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
 
   const totalSteps = technique.lesson.steps.length;
   const progress = ((activeStep + 1) / totalSteps) * 100;
   const currentStep = technique.lesson.steps[activeStep];
+  const lessonHobby = hobby || plan?.hobby || 'generic';
+  const imageUri = VisualImageService.getTechniqueImageUrl(lessonHobby, technique.name, 280, 200);
 
   useEffect(() => {
     fadeAnim.setValue(0);
@@ -84,7 +93,16 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp }: LessonS
       >
         {/* Visual Block (White Card style from Chess target) */}
         <View style={styles.visualBlock}>
-          <Text style={styles.visualEmoji}>{technique.emoji}</Text>
+          {!imageFailed ? (
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.visualImage}
+              resizeMode="cover"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <Text style={styles.visualEmoji}>{technique.emoji}</Text>
+          )}
         </View>
 
         {/* Explanation Card */}
@@ -96,27 +114,8 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp }: LessonS
             <Text style={styles.explanationTitle}>{currentStep.title}</Text>
           </View>
           <Text style={styles.explanationBody}>{currentStep.body}</Text>
-
-          {/* Show goal on the last step */}
-          {activeStep === totalSteps - 1 && (
-            <View style={styles.goalCard}>
-              <View style={styles.goalIcon}>
-                <Feather name="target" size={16} color={Theme.colors.success} />
-              </View>
-              <Text style={styles.goalText}>{technique.lesson.exercise.goal}</Text>
-            </View>
-          )}
         </View>
 
-        {/* Swipe Hint */}
-        <View style={styles.swipeHint}>
-          <Feather name="chevron-left" size={14} color={Theme.colors.palette.violet[300]} />
-          <View style={styles.swipeHintCenter}>
-            <Text style={styles.swipeHintText}>Swipe to learn</Text>
-            <Feather name="mouse-pointer" size={16} color={Theme.colors.palette.violet[400]} style={{ marginTop: 2 }} />
-          </View>
-          <Feather name="chevron-right" size={14} color={Theme.colors.palette.violet[300]} />
-        </View>
       </Animated.ScrollView>
 
       {/* Footer */}
@@ -234,18 +233,22 @@ const styles = StyleSheet.create({
   visualBlock: {
     backgroundColor: '#FFFFFF',
     borderRadius: Theme.borderRadius.xl,
-    paddingVertical: 48,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-    minHeight: SCREEN_WIDTH * 0.7,
+    padding: 12,
+    marginBottom: 14,
+    height: SCREEN_WIDTH * 0.62,
     borderWidth: 1,
     borderColor: '#F3F4F6',
     ...Theme.shadow.sm,
   },
+  visualImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: Theme.borderRadius.xl - 10,
+  },
   visualEmoji: {
-    fontSize: 80,
+    fontSize: 64,
+    alignSelf: 'center',
+    marginTop: 28,
   },
 
   explanationCard: {

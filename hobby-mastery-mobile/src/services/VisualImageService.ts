@@ -1,65 +1,31 @@
-import Constants from 'expo-constants';
-
-const PEXELS_SEARCH_URL = 'https://api.pexels.com/v1/search';
-const FALLBACK_IMAGE = 'https://images.pexels.com/photos/260024/pexels-photo-260024.jpeg?auto=compress&cs=tinysrgb&w=600';
-
-const cache = new Map<string, string>();
-
-const getPexelsApiKey = (): string | null => {
-  const extra = Constants.expoConfig?.extra as Record<string, string | undefined> | undefined;
-  return process.env.EXPO_PUBLIC_PEXELS_API_KEY || extra?.pexelsApiKey || null;
-};
-
 const normalize = (value: string): string => value.trim().toLowerCase();
 
-const buildSearchQuery = (hobby: string, topic: string): string => {
+const buildPrompt = (hobby: string, topic: string): string => {
   const normalizedHobby = normalize(hobby);
   const normalizedTopic = normalize(topic);
 
-  if (normalizedHobby.includes('chess')) {
-    if (normalizedTopic.includes('fork')) return 'chess knight fork tactic board';
-    if (normalizedTopic.includes('pin')) return 'chess pin tactic board';
-    if (normalizedTopic.includes('skewer')) return 'chess skewer tactic board';
-    if (normalizedTopic.includes('checkmate')) return 'chess checkmate pattern board';
-  }
+  // We want a beautiful, app-friendly illustration or 3D render, not overly realistic or messy photos
+  return `A highly detailed, beautiful, premium, clean illustration of ${normalizedTopic} in the context of ${normalizedHobby}. Professional app UI asset style, vibrant colors, clear subject, no text.`;
+};
 
-  return `${hobby} ${topic}`.trim();
+const buildImageUrl = (prompt: string, seed: number, width: number, height: number): string => {
+  const encodedPrompt = encodeURIComponent(prompt);
+  return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux&private=true`;
 };
 
 export const VisualImageService = {
+  getTechniqueImageUrl(hobby: string, topic: string, width = 240, height = 240): string {
+    const prompt = buildPrompt(hobby, topic);
+    const seed = topic.length * hobby.length;
+    return buildImageUrl(prompt, seed, width, height);
+  },
+
   async getTechniqueImage(hobby: string, topic: string): Promise<string | null> {
-    const cacheKey = `${normalize(hobby)}:${normalize(topic)}`;
-    const cached = cache.get(cacheKey);
-    if (cached) return cached;
-
-    const fallback = FALLBACK_IMAGE;
-    const apiKey = getPexelsApiKey();
-
-    if (!apiKey) {
-      cache.set(cacheKey, fallback);
-      return fallback;
-    }
-
     try {
-      const params = new URLSearchParams({
-        query: buildSearchQuery(hobby, topic),
-        per_page: '1',
-        orientation: 'square',
-      });
-
-      const response = await fetch(`${PEXELS_SEARCH_URL}?${params.toString()}`, {
-        headers: { Authorization: apiKey },
-      });
-
-      if (!response.ok) throw new Error(`Pexels ${response.status}`);
-
-      const data = await response.json();
-      const imageUri = data?.photos?.[0]?.src?.medium || fallback;
-      cache.set(cacheKey, imageUri);
-      return imageUri;
-    } catch {
-      cache.set(cacheKey, fallback);
-      return fallback;
+      return VisualImageService.getTechniqueImageUrl(hobby, topic);
+    } catch (error) {
+      console.warn('Pollinations AI failed', error);
+      return null;
     }
   },
 };
