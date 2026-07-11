@@ -89,19 +89,6 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.visualBlock}>
-          {!imageFailed ? (
-            <Image
-              source={{ uri: imageUri }}
-              style={styles.visualImage}
-              resizeMode="cover"
-              onError={() => setImageFailed(true)}
-            />
-          ) : (
-            <Text style={styles.visualEmoji}>{technique.emoji}</Text>
-          )}
-        </View>
-
         {/* Video Section - Display generated video if available */}
         <VideoSection
           technique={technique}
@@ -117,6 +104,19 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: 
             <Text style={styles.explanationTitle}>{currentStep.title}</Text>
           </View>
           <Text style={styles.explanationBody}>{currentStep.body}</Text>
+        </View>
+
+        <View style={styles.visualBlock}>
+          {!imageFailed ? (
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.visualImage}
+              resizeMode="cover"
+              onError={() => setImageFailed(true)}
+            />
+          ) : (
+            <Text style={styles.visualEmoji}>{technique.emoji}</Text>
+          )}
         </View>
 
       </Animated.ScrollView>
