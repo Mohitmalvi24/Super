@@ -1,5 +1,6 @@
 export type SkillLevel = 'beginner' | 'intermediate' | 'advanced';
 export type TechniqueStatus = 'not-started' | 'learning' | 'mastered' | 'skipped';
+
 export type ChallengeType = 'quiz' | 'timed-drill' | 'creative-prompt' | 'reflection';
 
 export interface LessonStep {
@@ -33,21 +34,18 @@ export interface Technique {
   description: string;
   category: string;
   estimatedMinutes: number;
-  level: SkillLevel;
+  level: SkillLevel | string;
   status: TechniqueStatus;
-  masteredAt?: number;
-  reviewDueAt?: number;
   lesson: LessonContent;
   keyTakeaways: KeyTakeaway[];
 }
 
 export interface LearningPlan {
   hobby: string;
-  targetLevel: SkillLevel;
+  targetLevel: SkillLevel | string;
   techniques: Technique[];
   createdAt: number;
   streakCount: number;
-  lastPracticeDate?: string;
 }
 
 export interface QuizOption {
@@ -66,4 +64,16 @@ export interface DailyChallenge {
   durationMinutes: number;
   xpReward: number;
   generatedAt: number;
+}
+
+export interface PlanGenerationRequest {
+  hobby: string;
+  level: SkillLevel;
+  skippedTechniques?: string[];
+}
+
+export interface ChallengeRequest {
+  hobby: string;
+  currentLevel?: SkillLevel;
+  completedChallenges?: number;
 }

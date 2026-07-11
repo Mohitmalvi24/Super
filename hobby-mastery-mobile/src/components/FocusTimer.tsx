@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { Theme } from '../utils/theme';
 
 interface FocusTimerProps {
   initialMinutes: number;
@@ -35,7 +36,7 @@ export const FocusTimer = ({ initialMinutes, onComplete }: FocusTimerProps) => {
       duration: 1000,
       useNativeDriver: false,
     }).start();
-  }, [secondsLeft]);
+  }, [secondsLeft, initialMinutes]);
 
   const toggleTimer = () => setIsActive(!isActive);
 
@@ -67,7 +68,7 @@ export const FocusTimer = ({ initialMinutes, onComplete }: FocusTimerProps) => {
 
       <View style={styles.controls}>
         <TouchableOpacity style={styles.controlBtn} onPress={resetTimer}>
-          <Feather name="rotate-ccw" size={24} color="#8A8F85" />
+          <Feather name="rotate-ccw" size={24} color={Theme.colors.text.muted} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -84,8 +85,8 @@ export const FocusTimer = ({ initialMinutes, onComplete }: FocusTimerProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#1A1C18',
-    borderRadius: 24,
+    backgroundColor: Theme.colors.palette.slate[900],
+    borderRadius: Theme.borderRadius.xxl,
     padding: 32,
     alignItems: 'center',
     marginVertical: 16,
@@ -95,7 +96,7 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
     borderWidth: 4,
-    borderColor: '#2E3128',
+    borderColor: Theme.colors.palette.slate[800],
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 100,
     borderWidth: 2,
-    borderColor: '#A8DAB5',
+    borderColor: Theme.colors.success,
     opacity: 0.2,
   },
   timeText: {
@@ -117,9 +118,8 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   label: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#A8DAB5',
+    ...Theme.typography.label,
+    color: Theme.colors.success,
     letterSpacing: 2,
     marginTop: 8,
   },
@@ -135,17 +135,17 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: '#43503F',
+    backgroundColor: Theme.colors.palette.slate[700],
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#A8DAB5',
+    shadowColor: Theme.colors.success,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 8,
   },
   pauseBtn: {
-    backgroundColor: '#F57F17',
-    shadowColor: '#F57F17',
+    backgroundColor: Theme.colors.warning,
+    shadowColor: Theme.colors.warning,
   }
 });

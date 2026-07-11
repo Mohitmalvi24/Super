@@ -1,66 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, TouchableOpacity, Animated, Easing,
-  FlatList, Dimensions, Share, TouchableWithoutFeedback,
+  View, Text, StyleSheet, TouchableOpacity,
+  ScrollView, Share,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import * as Speech from 'expo-speech';
 import * as Haptics from 'expo-haptics';
-
-
-const VISUALIZER_BAR_COUNT = 5;
-const VISUALIZER_BAR_REST_HEIGHT = 10;
-const SCREEN_DIMENSIONS = Dimensions.get('window');
-
-
-const AudioVisualizer = ({ isPlaying }: { isPlaying: boolean }) => {
-  const bars = useRef(
-    Array.from({ length: VISUALIZER_BAR_COUNT }, () => new Animated.Value(VISUALIZER_BAR_REST_HEIGHT))
-  ).current;
-
-  useEffect(() => {
-    if (isPlaying) {
-      const animations = bars.map(bar =>
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(bar, {
-              toValue: Math.random() * 40 + 20,
-              duration: Math.random() * 200 + 200,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: false,
-            }),
-            Animated.timing(bar, {
-              toValue: VISUALIZER_BAR_REST_HEIGHT,
-              duration: Math.random() * 200 + 200,
-              easing: Easing.inOut(Easing.ease),
-              useNativeDriver: false,
-            }),
-          ])
-        )
-      );
-      Animated.parallel(animations).start();
-      return () => animations.forEach(a => a.stop());
-    }
-
-    bars.forEach(bar =>
-      Animated.timing(bar, {
-        toValue: VISUALIZER_BAR_REST_HEIGHT,
-        duration: 300,
-        useNativeDriver: false,
-      }).start()
-    );
-  }, [isPlaying]);
-
-  return (
-    <View style={styles.visualizerContainer}>
-      {bars.map((bar, i) => (
-        <Animated.View key={i} style={[styles.visualizerBar, { height: bar }]} />
-      ))}
-    </View>
-  );
-};
-
+import { LearningContext } from '../store/LearningContext';
+import { Theme } from '../utils/theme';
 
 interface LearnTabProps {
   proTips: string[];
@@ -68,298 +15,470 @@ interface LearnTabProps {
   setSavedTips: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-
 export const LearnTab = ({ proTips, savedTips, setSavedTips }: LearnTabProps) => {
-  const [playingIndex, setPlayingIndex] = useState(-1);
-  const [likedIndices, setLikedIndices] = useState<Set<number>>(new Set());
-  const [containerHeight, setContainerHeight] = useState(SCREEN_DIMENSIONS.height - 80);
+  const ctx = useContext(LearningContext);
+  const [expandedLesson, setExpandedLesson] = useState<string | null>(null);
 
-  useEffect(() => {
-    return () => { Speech.stop(); };
-  }, []);
-
-  const handleScrollBeginDrag = useCallback(() => {
-    Speech.stop();
-    setPlayingIndex(-1);
-  }, []);
-
-  const toggleAudio = useCallback((index: number, text: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-    if (playingIndex === index) {
-      Speech.stop();
-      setPlayingIndex(-1);
-      return;
-    }
-
-    Speech.stop();
-    Speech.speak(text, {
-      onDone: () => setPlayingIndex(-1),
-      onStopped: () => setPlayingIndex(-1),
-    });
-    setPlayingIndex(index);
-  }, [playingIndex]);
-
-  const toggleLike = useCallback((index: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setLikedIndices(prev => {
-      const next = new Set(prev);
-      next.has(index) ? next.delete(index) : next.add(index);
-      return next;
-    });
-  }, []);
+  const techniques = ctx?.plan?.techniques || [];
+  const masteredCount = techniques.filter(t => t.status === 'mastered').length;
+  const totalCount = techniques.length;
 
   const toggleSave = useCallback((tip: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setSavedTips(prev =>
-      prev.includes(tip) ? prev.filter(t => t !== tip) : [...prev, tip]
-    );
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSavedTips(prev => prev.includes(tip) ? prev.filter(t => t !== tip) : [...prev, tip]);
   }, [setSavedTips]);
 
   const handleShare = useCallback(async (tip: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      await Share.share({
-        message: `Check out this pro tip from Hobby Mastery:\n\n"${tip}"`,
-      });
-    } catch (err) {
-      console.error('Share failed:', err);
-    }
+      await Share.share({ message: `Pro tip from Hobby Mastery:\n\n"${tip}"` });
+    } catch { /* user cancelled */ }
   }, []);
 
-  if (proTips.length === 0) {
+  if (techniques.length === 0) {
     return (
       <View style={[styles.container, styles.emptyContainer]}>
-        <Feather name="headphones" size={48} color="#CBD5E1" />
-        <Text style={styles.emptyText}>Start a lesson to unlock audio shorts.</Text>
+        <View style={styles.emptyIcon}>
+          <Feather name="book-open" size={32} color={Theme.colors.text.muted} />
+        </View>
+        <Text style={styles.emptyTitle}>No Lessons Yet</Text>
+        <Text style={styles.emptyText}>Complete your first technique to unlock the learning library.</Text>
       </View>
     );
   }
 
   return (
-    <View
+    <ScrollView
       style={styles.container}
-      onLayout={e => setContainerHeight(e.nativeEvent.layout.height)}
+      contentContainerStyle={styles.scrollContent}
+      showsVerticalScrollIndicator={false}
     >
-      <FlatList
-        data={proTips}
-        keyExtractor={(_, i) => String(i)}
-        pagingEnabled
-        showsVerticalScrollIndicator={false}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        getItemLayout={(_, index) => ({
-          length: containerHeight,
-          offset: containerHeight * index,
-          index,
-        })}
-        renderItem={({ item, index }) => {
-          const isPlaying = playingIndex === index;
-          const isLiked = likedIndices.has(index);
-          const isSaved = savedTips.includes(item);
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Learning Library</Text>
+        <Text style={styles.headerSubtitle}>
+          {masteredCount} of {totalCount} lessons completed
+        </Text>
+      </View>
 
-          return (
-            <TouchableWithoutFeedback onPress={() => toggleAudio(index, item)}>
-              <View style={{ width: SCREEN_DIMENSIONS.width, height: containerHeight }}>
-                <LinearGradient
-                  colors={['#1E293B', '#0F172A']}
-                  style={StyleSheet.absoluteFill}
-                />
+      <LinearGradient
+        colors={[Theme.colors.palette.slate[900], Theme.colors.palette.slate[800]]}
+        style={styles.progressCard}
+      >
+        <View style={styles.progressRow}>
+          <View style={styles.progressTextBlock}>
+            <Text style={styles.progressPercent}>
+              {totalCount > 0 ? Math.round((masteredCount / totalCount) * 100) : 0}%
+            </Text>
+            <Text style={styles.progressLabel}>Knowledge Unlocked</Text>
+          </View>
+          <View style={styles.progressBarContainer}>
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFill,
+                  { width: `${totalCount > 0 ? (masteredCount / totalCount) * 100 : 0}%` },
+                ]}
+              />
+            </View>
+            <View style={styles.progressMeta}>
+              <Text style={styles.progressMetaText}>{masteredCount} mastered</Text>
+              <Text style={styles.progressMetaText}>{totalCount - masteredCount} remaining</Text>
+            </View>
+          </View>
+        </View>
+      </LinearGradient>
 
-                <View style={styles.overlay}>
-                  <AudioVisualizer isPlaying={isPlaying} />
+      <Text style={styles.sectionTitle}>All Lessons</Text>
 
-                  <View style={styles.contentArea}>
-                    <View style={styles.badge}>
-                      <Feather name="headphones" size={12} color="#FBBF24" />
-                      <Text style={styles.badgeLabel}>PRO TIP AUDIO</Text>
-                    </View>
+      {techniques.map(technique => {
+        const isExpanded = expandedLesson === technique.id;
+        const isMastered = technique.status === 'mastered';
+        const lesson = technique.lesson;
 
-                    <Text style={styles.tipText}>{item}</Text>
-
-                    <TouchableOpacity
-                      style={styles.playBtn}
-                      onPress={() => toggleAudio(index, item)}
-                    >
-                      <Feather
-                        name={isPlaying ? 'pause' : 'play'}
-                        size={20}
-                        color="#0F172A"
-                      />
-                      <Text style={styles.playBtnLabel}>
-                        {isPlaying ? 'Playing...' : 'Play Audio Insight'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <View style={styles.sidebar}>
-                    <TouchableOpacity
-                      style={styles.sidebarItem}
-                      onPress={() => toggleLike(index)}
-                    >
-                      <View style={styles.sidebarIconWrap}>
-                        <Ionicons
-                          name={isLiked ? 'heart' : 'heart-outline'}
-                          size={26}
-                          color={isLiked ? '#EF4444' : '#FFFFFF'}
-                        />
-                      </View>
-                      <Text style={styles.sidebarLabel}>Like</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.sidebarItem}
-                      onPress={() => toggleSave(item)}
-                    >
-                      <View style={styles.sidebarIconWrap}>
-                        <Feather
-                          name="bookmark"
-                          size={24}
-                          color={isSaved ? '#FBBF24' : '#FFFFFF'}
-                        />
-                      </View>
-                      <Text style={styles.sidebarLabel}>
-                        {isSaved ? 'Saved' : 'Save'}
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.sidebarItem}
-                      onPress={() => handleShare(item)}
-                    >
-                      <View style={styles.sidebarIconWrap}>
-                        <Feather name="share-2" size={24} color="#FFFFFF" />
-                      </View>
-                      <Text style={styles.sidebarLabel}>Share</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+        return (
+          <View key={technique.id} style={styles.lessonCard}>
+            <TouchableOpacity
+              style={styles.lessonHeader}
+              onPress={() => setExpandedLesson(isExpanded ? null : technique.id)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.lessonIcon, isMastered && styles.lessonIconMastered]}>
+                {isMastered ? (
+                  <Feather name="check" size={16} color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.lessonNumber}>
+                    {techniques.indexOf(technique) + 1}
+                  </Text>
+                )}
               </View>
-            </TouchableWithoutFeedback>
-          );
-        }}
-      />
-    </View>
+              <View style={styles.lessonTitleBlock}>
+                <Text style={styles.lessonTitle}>{technique.name}</Text>
+                <Text style={styles.lessonMeta}>
+                  {technique.category} · {technique.estimatedMinutes} min
+                </Text>
+              </View>
+              <Feather
+                name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                size={20}
+                color={Theme.colors.text.muted}
+              />
+            </TouchableOpacity>
+
+            {isExpanded && lesson && (
+              <View style={styles.lessonBody}>
+                <Text style={styles.overviewText}>{lesson.overview}</Text>
+
+                <Text style={styles.subSectionTitle}>Steps</Text>
+                {lesson.steps.map((step, idx) => (
+                  <View key={idx} style={styles.stepItem}>
+                    <View style={styles.stepBadge}>
+                      <Text style={styles.stepBadgeText}>{step.order}</Text>
+                    </View>
+                    <View style={styles.stepContent}>
+                      <Text style={styles.stepTitle}>{step.title}</Text>
+                      <Text style={styles.stepBody}>{step.body}</Text>
+                    </View>
+                  </View>
+                ))}
+
+                {lesson.exercise && (
+                  <>
+                    <Text style={styles.subSectionTitle}>Practice Drill</Text>
+                    <LinearGradient
+                      colors={[Theme.colors.infoLight, Theme.colors.palette.sky[100]]}
+                      style={styles.exerciseBox}
+                    >
+                      <View style={styles.exerciseHeader}>
+                        <Feather name="target" size={16} color={Theme.colors.infoDark} />
+                        <Text style={styles.exerciseTitle}>{lesson.exercise.title}</Text>
+                      </View>
+                      <Text style={styles.exerciseInstruction}>{lesson.exercise.instruction}</Text>
+                      <View style={styles.goalRow}>
+                        <Text style={styles.goalLabel}>GOAL</Text>
+                        <Text style={styles.goalText}>{lesson.exercise.goal}</Text>
+                      </View>
+                    </LinearGradient>
+                  </>
+                )}
+
+                {lesson.proTips.length > 0 && (
+                  <>
+                    <Text style={styles.subSectionTitle}>Pro Tips</Text>
+                    <View style={styles.tipsContainer}>
+                      {lesson.proTips.map((tip, idx) => {
+                        const isSaved = savedTips.includes(tip);
+                        return (
+                          <View key={idx} style={styles.tipCard}>
+                            <View style={styles.tipIconCircle}>
+                              <Feather name="star" size={12} color={Theme.colors.accentDark} />
+                            </View>
+                            <Text style={styles.tipText}>{tip}</Text>
+                            <View style={styles.tipActions}>
+                              <TouchableOpacity
+                                onPress={() => toggleSave(tip)}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              >
+                                <Feather
+                                  name="bookmark"
+                                  size={16}
+                                  color={isSaved ? Theme.colors.accent : Theme.colors.text.muted}
+                                />
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                onPress={() => handleShare(tip)}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                              >
+                                <Feather name="share-2" size={16} color={Theme.colors.text.muted} />
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
+          </View>
+        );
+      })}
+
+      <View style={{ height: 100 }} />
+    </ScrollView>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: Theme.colors.background,
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   emptyContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     padding: 32,
-    backgroundColor: '#F8FAFC',
+  },
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    backgroundColor: Theme.colors.surfaceElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  emptyTitle: {
+    ...Theme.typography.headingLg,
+    color: Theme.colors.text.primary,
+    marginBottom: 8,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#94A3B8',
-    fontWeight: '600',
-    marginTop: 16,
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.text.muted,
+    textAlign: 'center',
   },
 
-
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    padding: 24,
-    paddingBottom: 100,
-  },
-  contentArea: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    paddingRight: 60,
-  },
-
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(251,191,36,0.1)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(251,191,36,0.2)',
   },
-  badgeLabel: {
-    color: '#FBBF24',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1,
+  headerTitle: {
+    ...Theme.typography.displayMd,
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.text.secondary,
   },
 
-  tipText: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    lineHeight: 34,
+  progressCard: {
+    marginHorizontal: 20,
+    borderRadius: Theme.borderRadius.xl,
+    padding: 24,
     marginBottom: 24,
   },
-
-  playBtn: {
+  progressRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#38BDF8',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 16,
-    alignSelf: 'flex-start',
+    gap: 20,
   },
-  playBtnLabel: {
-    fontSize: 15,
+  progressTextBlock: {
+    alignItems: 'center',
+  },
+  progressPercent: {
+    fontSize: 36,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#FFFFFF',
+  },
+  progressLabel: {
+    ...Theme.typography.caption,
+    color: Theme.colors.palette.slate[400],
+    marginTop: 2,
+  },
+  progressBarContainer: {
+    flex: 1,
+  },
+  progressTrack: {
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: Theme.colors.success,
+    borderRadius: 4,
+  },
+  progressMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  progressMetaText: {
+    ...Theme.typography.caption,
+    color: Theme.colors.palette.slate[400],
   },
 
+  sectionTitle: {
+    ...Theme.typography.headingLg,
+    color: Theme.colors.text.primary,
+    paddingHorizontal: 24,
+    marginBottom: 12,
+  },
 
-  sidebar: {
-    position: 'absolute',
-    right: 16,
-    bottom: 120,
-    alignItems: 'center',
-    gap: 24,
+  lessonCard: {
+    marginHorizontal: 20,
+    backgroundColor: Theme.colors.surface,
+    borderRadius: Theme.borderRadius.lg,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: Theme.colors.borderLight,
+    overflow: 'hidden',
+    ...Theme.shadow.sm,
   },
-  sidebarItem: {
+  lessonHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    padding: 16,
   },
-  sidebarIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+  lessonIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: Theme.colors.surfaceElevated,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 14,
   },
-  sidebarLabel: {
-    color: '#FFFFFF',
-    fontSize: 12,
+  lessonIconMastered: {
+    backgroundColor: Theme.colors.success,
+  },
+  lessonNumber: {
+    ...Theme.typography.headingSm,
+    color: Theme.colors.text.secondary,
+  },
+  lessonTitleBlock: {
+    flex: 1,
+  },
+  lessonTitle: {
+    ...Theme.typography.headingMd,
+    color: Theme.colors.text.primary,
+    marginBottom: 2,
+  },
+  lessonMeta: {
+    ...Theme.typography.bodySm,
+    color: Theme.colors.text.muted,
+  },
+
+  lessonBody: {
+    paddingHorizontal: 16,
+    paddingBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: Theme.colors.borderLight,
+    paddingTop: 16,
+  },
+  overviewText: {
+    ...Theme.typography.bodyLg,
+    color: Theme.colors.text.secondary,
+    marginBottom: 20,
+  },
+
+  subSectionTitle: {
+    ...Theme.typography.label,
+    color: Theme.colors.text.muted,
+    letterSpacing: 1.5,
+    marginBottom: 12,
+    marginTop: 8,
+  },
+
+  stepItem: {
+    flexDirection: 'row',
+    marginBottom: 14,
+  },
+  stepBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Theme.colors.surfaceElevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+    marginTop: 2,
+  },
+  stepBadgeText: {
+    ...Theme.typography.headingSm,
+    color: Theme.colors.text.secondary,
+  },
+  stepContent: {
+    flex: 1,
+  },
+  stepTitle: {
+    ...Theme.typography.headingMd,
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
+  },
+  stepBody: {
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.text.secondary,
+  },
+
+  exerciseBox: {
+    borderRadius: Theme.borderRadius.lg,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Theme.colors.infoBorder,
+    marginBottom: 16,
+  },
+  exerciseHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
+  exerciseTitle: {
+    ...Theme.typography.headingMd,
+    color: Theme.colors.infoDark,
+  },
+  exerciseInstruction: {
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.palette.sky[700],
+    marginBottom: 12,
+  },
+  goalRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: '#FFFFFF',
+    padding: 10,
+    borderRadius: 8,
+  },
+  goalLabel: {
+    ...Theme.typography.label,
+    color: Theme.colors.infoDark,
+    marginRight: 8,
+    marginTop: 2,
+  },
+  goalText: {
+    flex: 1,
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.palette.sky[700],
     fontWeight: '600',
   },
 
-
-  visualizerContainer: {
-    position: 'absolute',
-    top: '40%',
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+  tipsContainer: {
     gap: 8,
-    height: 100,
   },
-  visualizerBar: {
-    width: 6,
-    backgroundColor: '#38BDF8',
-    borderRadius: 3,
+  tipCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: Theme.colors.warningLight,
+    borderRadius: Theme.borderRadius.md,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: Theme.colors.palette.amber[100],
+  },
+  tipIconCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Theme.colors.palette.amber[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+    marginTop: 2,
+  },
+  tipText: {
+    flex: 1,
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.palette.amber[800],
+  },
+  tipActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginLeft: 8,
+    marginTop: 2,
   },
 });

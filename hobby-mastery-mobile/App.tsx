@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useContext, useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Animated, Text, Dimensions } from 'react-native';
 import { Theme } from './src/utils/theme';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -11,12 +11,42 @@ const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
   const { plan, isLoading } = useContext(LearningContext) || { plan: null, isLoading: true };
+  const [showSplash, setShowSplash] = useState(true);
 
-  if (isLoading) {
+  const scaleAnim = useRef(new Animated.Value(0.8)).current;
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 4,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setTimeout(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 400,
+          useNativeDriver: true,
+        }).start(() => setShowSplash(false));
+      }, 1200); // Keep splash visible for at least a moment to show animation
+    }
+  }, [isLoading]);
+
+  if (showSplash) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Theme.colors.primary} />
-      </View>
+      <Animated.View style={[styles.splashContainer, { opacity: fadeAnim }]}>
+        <Animated.View style={[styles.splashContent, { transform: [{ scale: scaleAnim }, { translateY: -40 }] }]}>
+          <View style={styles.logoBadge}>
+            <Text style={styles.splashEmoji}>⚡</Text>
+          </View>
+          <Text style={styles.splashTitle}>Hobby Mastery</Text>
+          <Text style={styles.splashSubtitle}>Learn something new every day.</Text>
+        </Animated.View>
+      </Animated.View>
     );
   }
 
@@ -42,10 +72,40 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
+  splashContainer: {
     flex: 1,
+    backgroundColor: Theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: Theme.colors.background
-  }
+    paddingTop: 80,
+  },
+  splashContent: {
+    alignItems: 'center',
+  },
+  logoBadge: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    backgroundColor: Theme.colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  splashEmoji: {
+    fontSize: 40,
+  },
+  splashTitle: {
+    ...Theme.typography.displayMd,
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  splashSubtitle: {
+    ...Theme.typography.bodyLg,
+    color: 'rgba(255,255,255,0.7)',
+  },
 });

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, DimensionValue } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
-
+import { Theme } from '../utils/theme';
 
 interface SkillEntry {
   name: string;
@@ -16,90 +16,88 @@ interface RadarTabProps {
   strongestSkill: SkillEntry | null;
   savedTips: string[];
   skillRadar: SkillEntry[];
-  CATEGORY_ICONS: Record<string, string>;
+  categoryIcons: Record<string, string>;
+  totalXp: number;
+  challengesCompleted: number;
 }
 
-
-const SKILL_COLORS = [
-  '#3B82F6',
-  '#10B981',
-  '#F59E0B',
-  '#8B5CF6',
-  '#EC4899',
-] as const;
-
-
-interface InsightCardProps {
-  gradientColors: readonly [string, string];
-  iconBgColor: string;
-  iconName: string;
-  iconColor: string;
-  title: string;
-  children: React.ReactNode;
-}
-
-const InsightCard = ({ gradientColors, iconBgColor, iconName, iconColor, title, children }: InsightCardProps) => (
-  <LinearGradient colors={gradientColors} style={styles.insightCard}>
-    <View style={styles.insightHeader}>
-      <View style={[styles.insightIconBg, { backgroundColor: iconBgColor }]}>
-        <Feather name={iconName as any} size={20} color={iconColor} />
-      </View>
-      <Text style={styles.insightTitle}>{title}</Text>
-    </View>
-    <Text style={styles.insightBody}>{children}</Text>
-  </LinearGradient>
-);
-
+const SKILL_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
 
 export const RadarTab = ({
   weakestSkill,
   strongestSkill,
   savedTips,
   skillRadar,
-  CATEGORY_ICONS,
+  categoryIcons,
+  totalXp,
+  challengesCompleted,
 }: RadarTabProps) => {
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
       <View style={styles.screenHeader}>
-        <Text style={styles.headerTitle}>Deep Analytics</Text>
-        <Text style={styles.headerSubtitle}>Skill matrix and progression predictions</Text>
+        <Text style={styles.headerTitle}>Analytics</Text>
+        <Text style={styles.headerSubtitle}>Your learning progress at a glance</Text>
+      </View>
+
+      <View style={styles.statsRow}>
+        <View style={styles.statCard}>
+          <LinearGradient
+            colors={[Theme.colors.palette.violet[50], Theme.colors.palette.violet[100]]}
+            style={styles.statCardInner}
+          >
+            <Feather name="zap" size={20} color={Theme.colors.palette.violet[500]} />
+            <Text style={styles.statValue}>{totalXp}</Text>
+            <Text style={styles.statLabel}>Total XP</Text>
+          </LinearGradient>
+        </View>
+        <View style={styles.statCard}>
+          <LinearGradient
+            colors={[Theme.colors.palette.amber[50], Theme.colors.palette.amber[100]]}
+            style={styles.statCardInner}
+          >
+            <Feather name="award" size={20} color={Theme.colors.palette.amber[500]} />
+            <Text style={styles.statValue}>{challengesCompleted}</Text>
+            <Text style={styles.statLabel}>Challenges</Text>
+          </LinearGradient>
+        </View>
       </View>
 
       {weakestSkill && (
-        <InsightCard
-          gradientColors={['#FEF2F2', '#FEE2E2']}
-          iconBgColor="#FCA5A5"
-          iconName="target"
-          iconColor="#991B1B"
-          title="Recommended Focus"
-        >
-          Your <Text style={styles.boldText}>{weakestSkill.name}</Text> skills
-          are currently at {weakestSkill.percentage}%. Dedicate your next
-          practice session here.
-        </InsightCard>
+        <LinearGradient colors={[Theme.colors.dangerLight, Theme.colors.palette.red[100]]} style={styles.insightCard}>
+          <View style={styles.insightHeader}>
+            <View style={[styles.insightIconBg, { backgroundColor: Theme.colors.palette.red[400] }]}>
+              <Feather name="target" size={18} color="#FFFFFF" />
+            </View>
+            <Text style={styles.insightTitle}>Recommended Focus</Text>
+          </View>
+          <Text style={styles.insightBody}>
+            Your <Text style={styles.boldText}>{weakestSkill.name}</Text> skills
+            are at {weakestSkill.percentage}%. Focus your next practice session here.
+          </Text>
+        </LinearGradient>
       )}
 
       {strongestSkill && (
-        <InsightCard
-          gradientColors={['#F0FDF4', '#DCFCE7']}
-          iconBgColor="#86EFAC"
-          iconName="award"
-          iconColor="#166534"
-          title="Current Superpower"
-        >
-          You are dominating in{' '}
-          <Text style={styles.boldText}>{strongestSkill.name}</Text> (
-          {strongestSkill.percentage}% mastered). Keep up the momentum!
-        </InsightCard>
+        <LinearGradient colors={[Theme.colors.successLight, Theme.colors.palette.emerald[100]]} style={styles.insightCard}>
+          <View style={styles.insightHeader}>
+            <View style={[styles.insightIconBg, { backgroundColor: Theme.colors.palette.emerald[400] }]}>
+              <Feather name="award" size={18} color="#FFFFFF" />
+            </View>
+            <Text style={styles.insightTitle}>Current Superpower</Text>
+          </View>
+          <Text style={styles.insightBody}>
+            Dominating in <Text style={styles.boldText}>{strongestSkill.name}</Text> ({strongestSkill.percentage}% mastered). Keep it up!
+          </Text>
+        </LinearGradient>
       )}
 
       {savedTips.length > 0 && (
         <View style={styles.savedSection}>
-          <Text style={styles.savedSectionTitle}>Saved Insights</Text>
+          <Text style={styles.sectionTitle}>Saved Tips</Text>
           {savedTips.map((tip, idx) => (
             <View key={idx} style={styles.savedCard}>
               <View style={styles.savedIcon}>
-                <Feather name="bookmark" size={16} color="#FBBF24" />
+                <Feather name="bookmark" size={14} color={Theme.colors.accent} />
               </View>
               <Text style={styles.savedText}>{tip}</Text>
             </View>
@@ -108,17 +106,17 @@ export const RadarTab = ({
       )}
 
       <View style={styles.matrixCard}>
-        <Text style={styles.matrixTitle}>Skill Matrix</Text>
-        <View style={styles.matrixSpacer} />
+        <Text style={styles.sectionTitle}>Skill Matrix</Text>
+        <View style={{ height: 16 }} />
         {skillRadar.map((skill, i) => {
-          const iconName = CATEGORY_ICONS[skill.name] || 'star';
+          const iconName = categoryIcons[skill.name] || 'star';
           const barColor = SKILL_COLORS[i % SKILL_COLORS.length];
           const fillWidth = `${Math.max(skill.percentage, 4)}%` as DimensionValue;
 
           return (
             <View key={skill.name} style={styles.skillRow}>
               <View style={styles.skillIconBox}>
-                <Feather name={iconName as any} size={14} color="#64748B" />
+                <Feather name={iconName as any} size={14} color={Theme.colors.text.secondary} />
               </View>
               <View style={styles.skillDetails}>
                 <View style={styles.skillLabelRow}>
@@ -126,49 +124,69 @@ export const RadarTab = ({
                   <Text style={styles.skillPercent}>{skill.percentage}%</Text>
                 </View>
                 <View style={styles.skillTrack}>
-                  <View
-                    style={[
-                      styles.skillFill,
-                      { width: fillWidth, backgroundColor: barColor },
-                    ]}
-                  />
+                  <View style={[styles.skillFill, { width: fillWidth, backgroundColor: barColor }]} />
                 </View>
-                <Text style={styles.skillMeta}>
-                  {skill.done} of {skill.total} techniques
-                </Text>
+                <Text style={styles.skillMeta}>{skill.done} of {skill.total} techniques</Text>
               </View>
             </View>
           );
         })}
       </View>
+
+      <View style={{ height: 100 }} />
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   scroll: {
-    paddingBottom: 100,
+    paddingBottom: 20,
   },
   screenHeader: {
     paddingHorizontal: 24,
     paddingTop: 16,
+    marginBottom: 16,
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#0F172A',
+    ...Theme.typography.displayMd,
+    color: Theme.colors.text.primary,
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#64748B',
-    fontWeight: '500',
-    marginBottom: 24,
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.text.secondary,
+  },
+
+  statsRow: {
+    flexDirection: 'row',
+    marginHorizontal: 20,
+    gap: 10,
+    marginBottom: 16,
+  },
+  statCard: {
+    flex: 1,
+    borderRadius: Theme.borderRadius.lg,
+    overflow: 'hidden',
+  },
+  statCardInner: {
+    padding: 16,
+    alignItems: 'center',
+    gap: 6,
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Theme.colors.text.primary,
+  },
+  statLabel: {
+    ...Theme.typography.bodySm,
+    color: Theme.colors.text.secondary,
+    fontWeight: '600',
   },
 
   insightCard: {
     marginHorizontal: 24,
-    borderRadius: 20,
+    borderRadius: Theme.borderRadius.xl,
     padding: 20,
     marginBottom: 16,
   },
@@ -186,77 +204,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   insightTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
+    ...Theme.typography.headingMd,
+    color: Theme.colors.text.primary,
   },
   insightBody: {
-    fontSize: 14,
-    color: '#334155',
-    lineHeight: 22,
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.text.secondary,
   },
   boldText: {
     fontWeight: '700',
   },
 
-
   savedSection: {
     marginHorizontal: 24,
     marginBottom: 24,
   },
-  savedSectionTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 16,
+  sectionTitle: {
+    ...Theme.typography.headingLg,
+    color: Theme.colors.text.primary,
+    marginBottom: 12,
   },
   savedCard: {
     flexDirection: 'row',
-    backgroundColor: '#F8FAFC',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: Theme.colors.background,
+    borderRadius: Theme.borderRadius.lg,
+    padding: 14,
+    marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: Theme.colors.border,
   },
   savedIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFFBEB',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Theme.colors.warningLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
   },
   savedText: {
     flex: 1,
-    fontSize: 14,
-    color: '#334155',
-    lineHeight: 22,
+    ...Theme.typography.bodyMd,
+    color: Theme.colors.text.secondary,
   },
-
 
   matrixCard: {
     marginHorizontal: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    backgroundColor: Theme.colors.surface,
+    borderRadius: Theme.borderRadius.xl,
     padding: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  matrixTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  matrixSpacer: {
-    height: 16,
+    borderColor: Theme.colors.borderLight,
+    ...Theme.shadow.sm,
   },
   skillRow: {
     flexDirection: 'row',
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: Theme.colors.background,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -280,18 +280,17 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   skillName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#0F172A',
+    ...Theme.typography.headingSm,
+    color: Theme.colors.text.primary,
   },
   skillPercent: {
-    fontSize: 14,
+    ...Theme.typography.headingSm,
+    color: Theme.colors.text.primary,
     fontWeight: '800',
-    color: '#0F172A',
   },
   skillTrack: {
     height: 6,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: Theme.colors.surfaceElevated,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -300,9 +299,8 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   skillMeta: {
-    fontSize: 12,
-    color: '#94A3B8',
-    fontWeight: '500',
+    ...Theme.typography.bodySm,
+    color: Theme.colors.text.muted,
     marginTop: 6,
   },
 });
