@@ -20,6 +20,14 @@ export async function generateDailyChallenge(
   currentLevel: string = 'beginner',
   completedCount: number = 0,
 ): Promise<DailyChallenge> {
+  if (isChessHobby(hobby)) {
+    return buildChessChallenge(hobby);
+  }
+
+  if (isFootballHobby(hobby)) {
+    return buildFootballChallenge(hobby);
+  }
+
   if (!config.groqApiKey) {
     return buildMockChallenge(hobby);
   }
@@ -108,5 +116,46 @@ function buildMockChallenge(hobby: string): DailyChallenge {
     hobby,
     generatedAt: Date.now(),
     ...challenges[type],
+  };
+}
+
+function isChessHobby(hobby: string): boolean {
+  return hobby.trim().toLowerCase().includes('chess');
+}
+
+function isFootballHobby(hobby: string): boolean {
+  const normalized = hobby.trim().toLowerCase();
+  return normalized.includes('football') || normalized.includes('soccer');
+}
+
+function buildChessChallenge(hobby: string): DailyChallenge {
+  return {
+    id: `challenge-${Date.now()}`,
+    hobby,
+    type: 'reflection',
+    title: 'Think Like a Tactician',
+    description: 'Review the patterns that decide real games.',
+    content: 'Look at your last position and name one fork, pin, or skewer you could have searched for. Which piece was the most vulnerable target?',
+    emoji: '♟️',
+    visualHint: 'A chessboard moment where a tactical idea is being evaluated',
+    durationMinutes: 3,
+    xpReward: 20,
+    generatedAt: Date.now(),
+  };
+}
+
+function buildFootballChallenge(hobby: string): DailyChallenge {
+  return {
+    id: `challenge-${Date.now()}`,
+    hobby,
+    type: 'timed-drill',
+    title: 'First-Touch Drill',
+    description: 'Control each pass into space before playing the next ball.',
+    content: 'Use a wall or partner. Pass, receive with one touch into space, then pass again. Alternate feet and keep the ball close enough to play quickly.',
+    emoji: '⚽',
+    visualHint: 'A football player receiving the ball and guiding it into space',
+    durationMinutes: 3,
+    xpReward: 25,
+    generatedAt: Date.now(),
   };
 }

@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
-  Dimensions, ActivityIndicator,
+  ActivityIndicator, Image,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
-import { DailyChallenge as ChallengeType, ChallengeType as ChallengeKind } from '../types';
+import { DailyChallenge as ChallengeType } from '../types';
 import { ApiClient } from '../services/ApiClient';
+import { VisualImageService } from '../services/VisualImageService';
 import { Theme } from '../utils/theme';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface DailyChallengeProps {
   hobby: string;
@@ -18,23 +16,64 @@ interface DailyChallengeProps {
   onChallengeComplete: (xp: number) => void;
 }
 
-const CHALLENGE_CONFIG: Record<ChallengeKind, { icon: string; gradient: readonly [string, string]; label: string }> = {
-  'quiz': { icon: 'help-circle', gradient: ['#7C3AED', '#6D28D9'] as const, label: 'QUIZ' },
-  'timed-drill': { icon: 'clock', gradient: ['#0EA5E9', '#0284C7'] as const, label: 'TIMED DRILL' },
-  'creative-prompt': { icon: 'edit-3', gradient: ['#F59E0B', '#D97706'] as const, label: 'CREATIVE' },
-  'reflection': { icon: 'message-circle', gradient: ['#10B981', '#059669'] as const, label: 'REFLECTION' },
+const normalize = (value: string): string => value.trim().toLowerCase();
+
+const getHobbyKind = (hobby: string): 'chess' | 'football' | 'generic' => {
+  const normalized = normalize(hobby);
+  if (normalized.includes('chess')) return 'chess';
+  if (normalized.includes('football') || normalized.includes('soccer')) return 'football';
+  return 'generic';
+};
+
+const ChessChallengeVisual = () => (
+  <View style={styles.chessBoard}>
+    {Array.from({ length: 64 }).map((_, cell) => {
+      const row = Math.floor(cell / 8);
+      const col = cell % 8;
+      const piece = [
+        { row: 0, col: 3, label: 'Q' },
+        { row: 0, col: 6, label: 'K' },
+        { row: 2, col: 5, label: 'P' },
+        { row: 3, col: 0, label: 'B' },
+        { row: 3, col: 3, label: 'N' },
+        { row: 3, col: 5, label: 'B' },
+      ].find(p => p.row === row && p.col === col);
+
+      return (
+        <View key={cell} style={[styles.chessSquare, (row + col) % 2 === 0 ? styles.chessLight : styles.chessDark]}>
+          {piece && <Text style={styles.chessPiece}>{piece.label}</Text>}
+        </View>
+      );
+    })}
+  </View>
+);
+
+const FootballChallengeVisual = () => (
+  <View style={styles.footballPitch}>
+    <View style={styles.pitchBox} />
+    <View style={styles.pitchCircle} />
+    <View style={[styles.pitchDot, styles.pitchDotOne]} />
+    <View style={[styles.pitchDot, styles.pitchDotTwo]} />
+    <View style={[styles.pitchDot, styles.pitchDotThree]} />
+    <View style={styles.pitchPassLine} />
+  </View>
+);
+
+const ChallengeVisual = ({ hobby, imageUri }: { hobby: string; imageUri?: string }) => {
+  const kind = getHobbyKind(hobby);
+  if (kind === 'chess') return <ChessChallengeVisual />;
+  if (kind === 'football') return <FootballChallengeVisual />;
+  if (imageUri) return <Image source={{ uri: imageUri }} style={styles.challengeImage} resizeMode="cover" />;
+  return <View style={styles.visualFallback}><Feather name="target" size={34} color={Theme.colors.primary} /></View>;
 };
 
 export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete }: DailyChallengeProps) => {
   const [challenge, setChallenge] = useState<ChallengeType | null>(null);
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
-  const [selectedQuizOption, setSelectedQuizOption] = useState<number | null>(null);
-  const [quizRevealed, setQuizRevealed] = useState(false);
-  const [drillTimerActive, setDrillTimerActive] = useState(false);
-  const [drillSecondsLeft, setDrillSecondsLeft] = useState(0);
+  const [challengeImage, setChallengeImage] = useState<string | undefined>();
 
-  const scaleAnim = useRef(new Animated.Value(0.95)).current;
+  const scaleAnim = useRef(new Animated.Value(0.96)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const rewardAnim = useRef(new Animated.Value(0)).current;
 
@@ -42,80 +81,49 @@ export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete
     fetchChallenge();
   }, [hobby]);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadImage = async () => {
+      if (!challenge) return;
+      const imageUri = await VisualImageService.getTechniqueImage(hobby, challenge.title);
+      if (isMounted && imageUri) setChallengeImage(imageUri);
+    };
+
+    loadImage();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [challenge?.title, hobby]);
+
   const fetchChallenge = async () => {
     setLoading(true);
     setCompleted(false);
-    setSelectedQuizOption(null);
-    setQuizRevealed(false);
-    setDrillTimerActive(false);
+    setChallengeImage(undefined);
+
     try {
       const data = await ApiClient.getDailyChallenge(hobby, 'beginner', completedChallenges);
       setChallenge(data);
-      if (data.type === 'timed-drill') {
-        setDrillSecondsLeft(data.durationMinutes * 60);
-      }
     } catch {
       setChallenge(null);
     } finally {
       setLoading(false);
       Animated.parallel([
-        Animated.spring(scaleAnim, { toValue: 1, friction: 6, useNativeDriver: true }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.spring(scaleAnim, { toValue: 1, friction: 7, tension: 80, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 420, useNativeDriver: true }),
       ]).start();
     }
   };
 
-  useEffect(() => {
-    if (!drillTimerActive || drillSecondsLeft <= 0) return;
-    const interval = setInterval(() => {
-      setDrillSecondsLeft(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          setDrillTimerActive(false);
-          completeChallenge();
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [drillTimerActive, drillSecondsLeft]);
-
   const completeChallenge = useCallback(() => {
     if (completed || !challenge) return;
+
     setCompleted(true);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-
-    Animated.sequence([
-      Animated.timing(rewardAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-      Animated.delay(200),
-    ]).start();
-
+    Animated.timing(rewardAnim, { toValue: 1, duration: 260, useNativeDriver: true }).start();
     onChallengeComplete(challenge.xpReward);
   }, [completed, challenge, onChallengeComplete]);
-
-  const handleQuizSelect = (index: number) => {
-    if (quizRevealed) return;
-    setSelectedQuizOption(index);
-    setQuizRevealed(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-
-    const isCorrect = challenge?.options?.[index]?.isCorrect;
-    if (isCorrect) {
-      setTimeout(completeChallenge, 600);
-    }
-  };
-
-  const handleDrillStart = () => {
-    setDrillTimerActive(true);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-  };
-
-  const formatTime = (seconds: number): string => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  };
 
   if (loading) {
     return (
@@ -128,98 +136,43 @@ export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete
 
   if (!challenge) return null;
 
-  const config = CHALLENGE_CONFIG[challenge.type];
-
   return (
     <Animated.View style={[styles.wrapper, { opacity: fadeAnim, transform: [{ scale: scaleAnim }] }]}>
-      <LinearGradient colors={config.gradient} style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.typeBadge}>
-            <Feather name={config.icon as any} size={12} color="#FFFFFF" />
-            <Text style={styles.typeBadgeText}>{config.label}</Text>
-          </View>
-          <View style={styles.xpBadge}>
-            <Text style={styles.xpText}>+{challenge.xpReward} XP</Text>
-          </View>
-        </View>
+      <View style={styles.card}>
+        <ChallengeVisual hobby={hobby} imageUri={challengeImage} />
 
-        <Text style={styles.challengeTitle}>{challenge.title}</Text>
-        <Text style={styles.challengeDescription}>{challenge.description}</Text>
+        <View style={styles.challengeCopy}>
+          <Text style={styles.challengeTitle}>{challenge.title}</Text>
+          <Text style={styles.challengeDescription} numberOfLines={2}>{challenge.description}</Text>
 
-        <View style={styles.contentBox}>
-          <Text style={styles.contentText}>{challenge.content}</Text>
-        </View>
-
-        {challenge.type === 'quiz' && challenge.options && (
-          <View style={styles.optionsContainer}>
-            {challenge.options.map((option, idx) => {
-              const isSelected = selectedQuizOption === idx;
-              const isCorrect = option.isCorrect;
-              let optionStyle = styles.optionDefault;
-              if (quizRevealed && isSelected && isCorrect) optionStyle = styles.optionCorrect;
-              else if (quizRevealed && isSelected && !isCorrect) optionStyle = styles.optionWrong;
-              else if (quizRevealed && isCorrect) optionStyle = styles.optionCorrect;
-
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  style={[styles.optionButton, quizRevealed && optionStyle]}
-                  onPress={() => handleQuizSelect(idx)}
-                  disabled={quizRevealed}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.optionIndex}>
-                    <Text style={styles.optionIndexText}>{String.fromCharCode(65 + idx)}</Text>
-                  </View>
-                  <Text style={styles.optionText}>{option.text}</Text>
-                  {quizRevealed && isCorrect && (
-                    <Feather name="check-circle" size={18} color="#10B981" />
-                  )}
-                  {quizRevealed && isSelected && !isCorrect && (
-                    <Feather name="x-circle" size={18} color="#EF4444" />
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        )}
-
-        {challenge.type === 'timed-drill' && !completed && (
-          <View style={styles.drillControls}>
-            {drillTimerActive ? (
-              <View style={styles.timerDisplay}>
-                <Text style={styles.timerText}>{formatTime(drillSecondsLeft)}</Text>
-                <Text style={styles.timerLabel}>remaining</Text>
+          <View style={styles.rewardBlock}>
+            <Text style={styles.rewardLabel}>Reward</Text>
+            <View style={styles.rewardRow}>
+              <View style={styles.rewardItem}>
+                <Feather name="zap" size={14} color={Theme.colors.primary} />
+                <Text style={styles.rewardText}>+{challenge.xpReward} XP</Text>
               </View>
-            ) : (
-              <TouchableOpacity style={styles.drillStartBtn} onPress={handleDrillStart} activeOpacity={0.8}>
-                <Feather name="play" size={18} color={config.gradient[0]} />
-                <Text style={[styles.drillStartText, { color: config.gradient[0] }]}>Start Drill</Text>
-              </TouchableOpacity>
-            )}
+              <View style={styles.rewardItem}>
+                <Feather name="activity" size={14} color="#F97316" />
+                <Text style={styles.rewardText}>+1 Streak</Text>
+              </View>
+            </View>
           </View>
-        )}
 
-        {(challenge.type === 'creative-prompt' || challenge.type === 'reflection') && !completed && (
-          <TouchableOpacity style={styles.completeBtn} onPress={completeChallenge} activeOpacity={0.8}>
-            <Text style={styles.completeBtnText}>Mark Complete</Text>
-            <Feather name="check" size={16} color="#FFFFFF" />
-          </TouchableOpacity>
-        )}
-
-        {completed && (
-          <Animated.View style={[styles.completedBanner, { opacity: rewardAnim }]}>
-            <Feather name="award" size={20} color="#FBBF24" />
-            <Text style={styles.completedText}>Challenge Complete! +{challenge.xpReward} XP</Text>
-          </Animated.View>
-        )}
-
-        {quizRevealed && !challenge.options?.[selectedQuizOption!]?.isCorrect && !completed && (
-          <TouchableOpacity style={styles.tryAgainHint} onPress={completeChallenge} activeOpacity={0.7}>
-            <Text style={styles.tryAgainText}>Not quite — but learning from mistakes counts! Tap to claim XP.</Text>
-          </TouchableOpacity>
-        )}
-      </LinearGradient>
+          {!completed ? (
+            <TouchableOpacity style={styles.primaryButton} onPress={completeChallenge} activeOpacity={0.85}>
+              <Text style={styles.primaryButtonText}>
+                {getHobbyKind(hobby) === 'chess' ? 'Start Puzzle' : 'Start Drill'}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <Animated.View style={[styles.completedBanner, { opacity: rewardAnim }]}>
+              <Feather name="award" size={18} color={Theme.colors.primary} />
+              <Text style={styles.completedText}>Complete</Text>
+            </Animated.View>
+          )}
+        </View>
+      </View>
     </Animated.View>
   );
 };
@@ -227,7 +180,7 @@ export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete
 const styles = StyleSheet.create({
   wrapper: {
     marginHorizontal: 20,
-    marginBottom: 20,
+    marginBottom: 22,
   },
   loadingContainer: {
     marginHorizontal: 20,
@@ -241,178 +194,186 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.muted,
   },
   card: {
-    borderRadius: Theme.borderRadius.xxl,
-    padding: 24,
-    ...Theme.shadow.lg,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  typeBadge: {
+    minHeight: 170,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#EEF0F4',
+    ...Theme.shadow.md,
   },
-  typeBadgeText: {
-    ...Theme.typography.label,
-    color: '#FFFFFF',
-    letterSpacing: 1.5,
-  },
-  xpBadge: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  xpText: {
-    ...Theme.typography.headingSm,
-    color: '#FFFFFF',
+  challengeCopy: {
+    flex: 1,
+    marginLeft: 16,
   },
   challengeTitle: {
-    ...Theme.typography.displaySm,
-    color: '#FFFFFF',
-    marginBottom: 6,
+    ...Theme.typography.headingLg,
+    color: Theme.colors.text.primary,
+    marginBottom: 4,
   },
   challengeDescription: {
-    ...Theme.typography.bodyMd,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 20,
+    ...Theme.typography.bodySm,
+    color: Theme.colors.text.secondary,
+    lineHeight: 17,
+    marginBottom: 14,
   },
-  contentBox: {
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderRadius: Theme.borderRadius.lg,
-    padding: 16,
-    marginBottom: 16,
+  rewardBlock: {
+    marginBottom: 14,
   },
-  contentText: {
-    ...Theme.typography.bodyLg,
-    color: '#FFFFFF',
-    lineHeight: 26,
-  },
-
-  optionsContainer: {
-    gap: 8,
+  rewardLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Theme.colors.primary,
+    backgroundColor: Theme.colors.primaryBg,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     marginBottom: 8,
   },
-  optionButton: {
+  rewardRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    borderRadius: Theme.borderRadius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
     gap: 12,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
   },
-  optionDefault: {},
-  optionCorrect: {
-    backgroundColor: 'rgba(16,185,129,0.25)',
-    borderColor: '#10B981',
+  rewardItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
-  optionWrong: {
-    backgroundColor: 'rgba(239,68,68,0.25)',
-    borderColor: '#EF4444',
+  rewardText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Theme.colors.text.primary,
   },
-  optionIndex: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  primaryButton: {
+    height: 44,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: Theme.colors.primary,
+    ...Theme.shadow.sm,
   },
-  optionIndexText: {
-    ...Theme.typography.headingSm,
-    color: '#FFFFFF',
-  },
-  optionText: {
-    flex: 1,
-    ...Theme.typography.bodyMd,
-    color: '#FFFFFF',
-  },
-
-  drillControls: {
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  drillStartBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: Theme.borderRadius.lg,
-  },
-  drillStartText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  timerDisplay: {
-    alignItems: 'center',
-  },
-  timerText: {
-    fontSize: 40,
+  primaryButtonText: {
+    fontSize: 15,
     fontWeight: '800',
     color: '#FFFFFF',
-    fontVariant: ['tabular-nums'],
   },
-  timerLabel: {
-    ...Theme.typography.bodySm,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 4,
-  },
-
-  completeBtn: {
+  completedBanner: {
+    height: 44,
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 14,
-    borderRadius: Theme.borderRadius.lg,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
-    marginTop: 8,
-  },
-  completeBtnText: {
-    ...Theme.typography.headingMd,
-    color: '#FFFFFF',
-  },
-
-  completedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 16,
-    borderRadius: Theme.borderRadius.lg,
-    marginTop: 8,
+    backgroundColor: Theme.colors.primaryBg,
   },
   completedText: {
-    ...Theme.typography.headingMd,
-    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800',
+    color: Theme.colors.primary,
   },
-
-  tryAgainHint: {
-    marginTop: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: Theme.borderRadius.md,
+  challengeImage: {
+    width: 118,
+    height: 118,
+    borderRadius: 10,
   },
-  tryAgainText: {
-    ...Theme.typography.bodyMd,
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
+  visualFallback: {
+    width: 118,
+    height: 118,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Theme.colors.primaryBg,
+  },
+  chessBoard: {
+    width: 118,
+    height: 118,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    borderRadius: 10,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(124,58,237,0.16)',
+  },
+  chessSquare: {
+    width: '12.5%',
+    height: '12.5%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chessLight: {
+    backgroundColor: '#F7F3FF',
+  },
+  chessDark: {
+    backgroundColor: '#CBD6A3',
+  },
+  chessPiece: {
+    fontSize: 10,
+    fontWeight: '900',
+    color: '#111827',
+  },
+  footballPitch: {
+    width: 118,
+    height: 118,
+    borderRadius: 10,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: '#27AE60',
+    borderWidth: 1,
+    borderColor: 'rgba(5,150,105,0.18)',
+  },
+  pitchBox: {
+    position: 'absolute',
+    left: 9,
+    right: 9,
+    top: 9,
+    bottom: 9,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.55)',
+    borderRadius: 8,
+  },
+  pitchCircle: {
+    position: 'absolute',
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.55)',
+    left: 36,
+    top: 36,
+  },
+  pitchDot: {
+    position: 'absolute',
+    width: 15,
+    height: 15,
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 3,
+    borderColor: '#14532D',
+  },
+  pitchDotOne: {
+    left: 23,
+    top: 29,
+  },
+  pitchDotTwo: {
+    left: 54,
+    top: 59,
+  },
+  pitchDotThree: {
+    left: 82,
+    top: 34,
+  },
+  pitchPassLine: {
+    position: 'absolute',
+    width: 70,
+    height: 2,
+    left: 28,
+    top: 54,
+    borderRadius: 1,
+    backgroundColor: 'rgba(255,255,255,0.82)',
+    transform: [{ rotate: '22deg' }],
   },
 });

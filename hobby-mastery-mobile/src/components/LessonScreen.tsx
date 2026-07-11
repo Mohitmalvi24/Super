@@ -19,18 +19,21 @@ interface LessonScreenProps {
 
 export const LessonScreen = ({ technique, onBack, onComplete, totalXp }: LessonScreenProps) => {
   const [activeStep, setActiveStep] = useState(0);
-  const slideAnim = useRef(new Animated.Value(20)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, { toValue: 1, duration: 400, useNativeDriver: true }),
-      Animated.timing(slideAnim, { toValue: 0, duration: 400, useNativeDriver: true }),
-    ]).start();
-  }, []);
+  const slideAnim = useRef(new Animated.Value(30)).current;
 
   const totalSteps = technique.lesson.steps.length;
   const progress = ((activeStep + 1) / totalSteps) * 100;
+  const currentStep = technique.lesson.steps[activeStep];
+
+  useEffect(() => {
+    fadeAnim.setValue(0);
+    slideAnim.setValue(30);
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 350, useNativeDriver: true }),
+    ]).start();
+  }, [activeStep]);
 
   const handleNext = () => {
     if (activeStep < totalSteps - 1) {
@@ -42,81 +45,94 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp }: LessonS
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <Feather name="chevron-left" size={24} color={Theme.colors.text.primary} />
+        <TouchableOpacity style={styles.backBtn} onPress={onBack}>
+          <Feather name="chevron-left" size={22} color={Theme.colors.text.primary} />
         </TouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{technique.name}</Text>
-          <View style={styles.headerSubtitleRow}>
-            <Feather name="book-open" size={12} color={Theme.colors.text.muted} />
-            <Text style={styles.headerSubtitle}>Lesson</Text>
+          <View style={styles.headerMeta}>
+            <Feather name="book-open" size={11} color={Theme.colors.text.muted} />
+            <Text style={styles.headerMetaText}>Lesson</Text>
           </View>
         </View>
         <View style={styles.xpBadge}>
-          <Text style={styles.xpBadgeIcon}>💎</Text>
-          <Text style={styles.xpBadgeText}>+{technique.status === 'mastered' ? 0 : 25} XP</Text>
+          <Text style={styles.xpIcon}>💎</Text>
+          <Text style={styles.xpText}>+25 XP</Text>
         </View>
       </View>
 
-      <View style={styles.progressSection}>
-        <View style={styles.progressBarBg}>
-          <Animated.View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+      {/* Progress Segments */}
+      <View style={styles.progressContainer}>
+        <View style={styles.progressRow}>
+          {technique.lesson.steps.map((_, i) => (
+            <View key={i} style={[
+              styles.progressSegment,
+              i <= activeStep ? styles.progressSegmentActive : styles.progressSegmentInactive
+            ]} />
+          ))}
         </View>
-        <Text style={styles.progressText}>Card {activeStep + 1} of {totalSteps}</Text>
+        <Text style={styles.cardCount}>Card {activeStep + 1} of {totalSteps}</Text>
       </View>
 
+      {/* Content */}
       <Animated.ScrollView
-        style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
+        style={[styles.scrollArea, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.visualCard}>
+        {/* Visual Block (White Card style from Chess target) */}
+        <View style={styles.visualBlock}>
           <Text style={styles.visualEmoji}>{technique.emoji}</Text>
         </View>
 
-        <View style={styles.instructionCard}>
-          <View style={styles.instructionHeader}>
-            <View style={styles.iconCircle}>
-              <Feather name="zap" size={16} color={Theme.colors.accent} />
+        {/* Explanation Card */}
+        <View style={styles.explanationCard}>
+          <View style={styles.explanationHeader}>
+            <View style={styles.explanationIcon}>
+              <Feather name="zap" size={16} color="#D97706" />
             </View>
-            <Text style={styles.instructionTitle}>{technique.lesson.steps[activeStep].title}</Text>
+            <Text style={styles.explanationTitle}>{currentStep.title}</Text>
           </View>
+          <Text style={styles.explanationBody}>{currentStep.body}</Text>
 
-          <Text style={styles.instructionBody}>
-            {technique.lesson.steps[activeStep].body}
-          </Text>
-
-          {activeStep === totalSteps - 1 && technique.lesson.proTips.length > 0 && (
-            <View style={styles.proTipBox}>
-              <Text style={styles.proTipTitle}>Pro Tip:</Text>
-              <Text style={styles.proTipText}>{technique.lesson.proTips[0]}</Text>
-            </View>
-          )}
-
+          {/* Show goal on the last step */}
           {activeStep === totalSteps - 1 && (
-            <View style={styles.goalBox}>
-              <Feather name="target" size={16} color={Theme.colors.success} />
+            <View style={styles.goalCard}>
+              <View style={styles.goalIcon}>
+                <Feather name="target" size={16} color={Theme.colors.success} />
+              </View>
               <Text style={styles.goalText}>{technique.lesson.exercise.goal}</Text>
             </View>
           )}
         </View>
+
+        {/* Swipe Hint */}
+        <View style={styles.swipeHint}>
+          <Feather name="chevron-left" size={14} color={Theme.colors.palette.violet[300]} />
+          <View style={styles.swipeHintCenter}>
+            <Text style={styles.swipeHintText}>Swipe to learn</Text>
+            <Feather name="mouse-pointer" size={16} color={Theme.colors.palette.violet[400]} style={{ marginTop: 2 }} />
+          </View>
+          <Feather name="chevron-right" size={14} color={Theme.colors.palette.violet[300]} />
+        </View>
       </Animated.ScrollView>
 
+      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={styles.primaryBtn}
           onPress={handleNext}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
         >
-          <Feather
-            name={activeStep === totalSteps - 1 ? 'grid' : 'arrow-right'}
-            size={20}
-            color="#FFFFFF"
-          />
-          <Text style={styles.actionButtonText}>
-            {activeStep === totalSteps - 1 ? 'Try Yourself' : 'Next Step'}
+          {activeStep === totalSteps - 1 && (
+            <Feather name="grid" size={18} color="#FFFFFF" />
+          )}
+          <Text style={styles.primaryBtnText}>
+            {activeStep === totalSteps - 1 ? 'Try Yourself' : 'Try Yourself'}
           </Text>
+          <Feather name="chevron-right" size={18} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -126,22 +142,24 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp }: LessonS
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Theme.colors.backgroundSecondary,
+    backgroundColor: '#FAFAFA',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Theme.colors.surface,
+  backBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Theme.colors.borderLight,
     ...Theme.shadow.sm,
   },
   headerCenter: {
@@ -151,165 +169,169 @@ const styles = StyleSheet.create({
     ...Theme.typography.headingLg,
     color: Theme.colors.text.primary,
   },
-  headerSubtitleRow: {
+  headerMeta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     marginTop: 2,
   },
-  headerSubtitle: {
-    ...Theme.typography.bodySm,
+  headerMetaText: {
+    fontSize: 12,
     color: Theme.colors.text.muted,
   },
   xpBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Theme.colors.primaryBg,
+    backgroundColor: Theme.colors.palette.violet[50],
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 12,
+    borderRadius: 10,
     gap: 4,
   },
-  xpBadgeIcon: {
+  xpIcon: { fontSize: 12 },
+  xpText: {
     fontSize: 12,
-  },
-  xpBadgeText: {
-    ...Theme.typography.caption,
-    color: Theme.colors.primary,
     fontWeight: '700',
+    color: Theme.colors.primary,
   },
 
-  progressSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+  progressContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 16,
     gap: 16,
   },
-  progressBarBg: {
+  progressRow: {
     flex: 1,
-    height: 6,
-    backgroundColor: Theme.colors.border,
-    borderRadius: 3,
+    flexDirection: 'row',
+    gap: 6,
   },
-  progressBarFill: {
-    height: 6,
+  progressSegment: {
+    flex: 1,
+    height: 4,
+    borderRadius: 2,
+  },
+  progressSegmentActive: {
     backgroundColor: Theme.colors.primary,
-    borderRadius: 3,
   },
-  progressText: {
-    ...Theme.typography.caption,
+  progressSegmentInactive: {
+    backgroundColor: Theme.colors.border,
+  },
+  cardCount: {
+    fontSize: 12,
     color: Theme.colors.text.muted,
   },
 
-  content: {
+  scrollArea: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
+    paddingHorizontal: 20,
     paddingBottom: 40,
   },
 
-  visualCard: {
-    backgroundColor: '#F3F4F6', // Soft slate-100 style
+  visualBlock: {
+    backgroundColor: '#FFFFFF',
     borderRadius: Theme.borderRadius.xl,
-    padding: 40,
+    paddingVertical: 48,
+    paddingHorizontal: 20,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
+    minHeight: SCREEN_WIDTH * 0.7,
     borderWidth: 1,
-    borderColor: Theme.colors.borderLight,
-    height: SCREEN_WIDTH * 0.7,
+    borderColor: '#F3F4F6',
+    ...Theme.shadow.sm,
   },
   visualEmoji: {
     fontSize: 80,
   },
 
-  instructionCard: {
-    backgroundColor: Theme.colors.surface,
+  explanationCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: Theme.borderRadius.xl,
-    padding: 24,
-    ...Theme.shadow.sm,
+    padding: 20,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: Theme.colors.borderLight,
+    borderColor: '#F3F4F6',
+    ...Theme.shadow.sm,
   },
-  instructionHeader: {
+  explanationHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
+    gap: 10,
+    marginBottom: 12,
   },
-  iconCircle: {
+  explanationIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Theme.colors.palette.amber[50],
+    backgroundColor: '#FEF3C7', // light amber
     alignItems: 'center',
     justifyContent: 'center',
   },
-  instructionTitle: {
+  explanationTitle: {
     ...Theme.typography.headingLg,
     color: Theme.colors.text.primary,
     flex: 1,
   },
-  instructionBody: {
+  explanationBody: {
     ...Theme.typography.bodyLg,
     color: Theme.colors.text.secondary,
     lineHeight: 24,
-    marginBottom: 24,
   },
 
-  proTipBox: {
-    backgroundColor: Theme.colors.infoLight,
-    padding: 16,
-    borderRadius: Theme.borderRadius.lg,
-    marginBottom: 16,
-    borderLeftWidth: 3,
-    borderLeftColor: Theme.colors.info,
-  },
-  proTipTitle: {
-    ...Theme.typography.headingSm,
-    color: Theme.colors.infoDark,
-    marginBottom: 4,
-  },
-  proTipText: {
-    ...Theme.typography.bodyMd,
-    color: Theme.colors.text.secondary,
-  },
-
-  goalBox: {
+  goalCard: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     backgroundColor: Theme.colors.successLight,
     padding: 16,
     borderRadius: Theme.borderRadius.lg,
-    gap: 12,
+    marginTop: 20,
+    gap: 10,
+  },
+  goalIcon: {
   },
   goalText: {
+    flex: 1,
     ...Theme.typography.bodyMd,
     color: Theme.colors.successDark,
-    flex: 1,
     fontWeight: '500',
+  },
+
+  swipeHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  swipeHintCenter: {
+    alignItems: 'center',
+  },
+  swipeHintText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Theme.colors.palette.violet[400],
   },
 
   footer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: Theme.colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: Theme.colors.borderLight,
+    paddingVertical: 14,
+    backgroundColor: '#FAFAFA',
   },
-  actionButton: {
+  primaryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Theme.colors.primary,
     paddingVertical: 16,
-    borderRadius: Theme.borderRadius.lg,
+    borderRadius: Theme.borderRadius.xl,
     gap: 8,
   },
-  actionButtonText: {
+  primaryBtnText: {
     ...Theme.typography.headingMd,
     color: '#FFFFFF',
   },
