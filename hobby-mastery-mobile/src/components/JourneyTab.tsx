@@ -22,16 +22,14 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
   
   const currentTech = activeTechniques.find(t => t.status !== 'mastered');
   
-  // Fake stats for UI
   const discoveries = masteredCount;
-  const learningTime = masteredCount * 15; // assuming 15 min per lesson
+  const learningTime = masteredCount * 15;
   const hours = Math.floor(learningTime / 60);
   const minutes = learningTime % 60;
   const level = Math.floor(totalXp / 500) + 1;
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTextContainer}>
           <Text style={styles.title}>{hobby} Journey</Text>
@@ -39,7 +37,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
         </View>
       </View>
 
-      {/* Current Goal Hero Card */}
       {currentTech && (
         <View style={styles.heroCard}>
           <View style={styles.heroLeft}>
@@ -52,7 +49,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
           </View>
           <View style={styles.heroRight}>
             <View style={styles.progressRing}>
-              {/* Simulated Progress Ring */}
               <View style={[styles.ringOuter, { borderColor: Theme.colors.primary }]} />
               <View style={styles.ringInner}>
                 <Text style={styles.ringPercent}>{progressPercent}%</Text>
@@ -67,7 +63,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
         </View>
       )}
 
-      {/* Timeline List */}
       <View style={styles.timeline}>
         {activeTechniques.map((tech, i) => {
           const isMastered = tech.status === 'mastered';
@@ -76,7 +71,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
 
           return (
             <View key={tech.id} style={styles.nodeContainer}>
-              {/* Line Connector */}
               {i < activeTechniques.length - 1 && (
                 <View style={[
                   styles.line,
@@ -84,7 +78,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
                 ]} />
               )}
               
-              {/* Circle Icon */}
               <View style={styles.circleColumn}>
                 <View style={[
                   styles.circle,
@@ -98,7 +91,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
                 </View>
               </View>
 
-              {/* Lesson Card */}
               <TouchableOpacity 
                 style={[
                   styles.card,
@@ -134,7 +126,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
                   {isLocked && (
                     <Feather name="lock" size={16} color={Theme.colors.text.muted} />
                   )}
-                  {/* Right chevron for navigation hint if not locked */}
                   {!isLocked && <Feather name="chevron-right" size={16} color={Theme.colors.text.muted} style={{marginLeft: 8}} />}
                   {isLocked && <Feather name="chevron-down" size={16} color={Theme.colors.border} style={{marginLeft: 8}} />}
                 </View>
@@ -143,7 +134,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
           );
         })}
 
-        {/* Final Trophy Node */}
         <View style={styles.nodeContainer}>
            <View style={styles.circleColumn}>
              <View style={[styles.circle, styles.circleTrophy]}>
@@ -165,7 +155,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
         </View>
       </View>
 
-      {/* Achievements (Mock UI for design) */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Achievements</Text>
       </View>
@@ -184,7 +173,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
         </View>
       </ScrollView>
 
-      {/* Statistics */}
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Learning Statistics</Text>
       </View>
@@ -211,7 +199,6 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
         </View>
       </View>
 
-      {/* Coach Banner */}
       <View style={styles.coachBanner}>
         <View style={styles.coachAvatar}>
           <Text style={{fontSize: 24}}>🤖</Text>
@@ -245,7 +232,7 @@ const styles = StyleSheet.create({
   },
   headerTextContainer: {
     flex: 1,
-    alignItems: 'center', // Centered as per screenshot
+    alignItems: 'center',
   },
   title: {
     ...Theme.typography.displayMd,
@@ -317,7 +304,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     borderWidth: 4,
     borderColor: Theme.colors.primary,
-    borderLeftColor: Theme.colors.borderLight, // Fake ring progress
+    borderLeftColor: Theme.colors.borderLight,
     transform: [{ rotate: '45deg' }]
   },
   ringInner: {
@@ -357,7 +344,7 @@ const styles = StyleSheet.create({
   },
   nodeContainer: {
     flexDirection: 'row',
-    marginBottom: 12, // Tighter spacing like in screenshot
+    marginBottom: 12,
     position: 'relative',
   },
   circleColumn: {
@@ -369,7 +356,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 15,
     top: 24,
-    bottom: -16, // Connect to next node
+    bottom: -16,
     width: 2,
     zIndex: 1,
   },
@@ -415,7 +402,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    marginLeft: -4, // Adjust for larger size
+    marginLeft: -4,
   },
 
   card: {
@@ -427,14 +414,14 @@ const styles = StyleSheet.create({
     padding: 8,
     paddingRight: 16,
     borderWidth: 1,
-    borderColor: 'transparent', // Default no border if completed
+    borderColor: 'transparent',
   },
   cardCurrent: {
     borderColor: Theme.colors.primary,
     backgroundColor: Theme.colors.primaryBg,
   },
   cardLocked: {
-    backgroundColor: 'transparent', // Blend with background
+    backgroundColor: 'transparent',
   },
   cardVisual: {
     width: 48,

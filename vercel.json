@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build:web",
+  "outputDirectory": "hobby-mastery-mobile/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}

@@ -30,7 +30,8 @@
     "android": "expo start --android",
     "android:tunnel": "expo start --android --tunnel",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "build:web": "expo export --platform web"
   },
   "private": true
 }

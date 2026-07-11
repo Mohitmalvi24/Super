@@ -11,7 +11,7 @@ import { Theme } from '../utils/theme';
 import { Technique } from '../types';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const STORY_DURATION = 5000; // 5 seconds per slide
+const STORY_DURATION = 5000;
 
 interface StoryLearnScreenProps {
   technique: Technique;
@@ -20,7 +20,6 @@ interface StoryLearnScreenProps {
 }
 
 export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnScreenProps) => {
-  // Slides: 1 Overview, N Steps, 1 Quick Question
   const slides = [
     { type: 'overview', title: 'Introduction', content: technique.lesson.overview },
     ...technique.lesson.steps.map(s => ({ type: 'step', title: s.title, content: s.body })),
@@ -30,8 +29,7 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [quizAnswered, setQuizAnswered] = useState(false);
-  
-  // Fake quiz for now if backend doesn't have it (handles backward compatibility)
+
   const quiz = (technique.lesson as any).quickQuestion || {
     question: `What is the primary focus of ${technique.name}?`,
     options: [
@@ -43,12 +41,10 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
 
   const progressAnim = useRef(new Animated.Value(0)).current;
 
-  // Handle auto-advance
   useEffect(() => {
     progressAnim.setValue(0);
     
     if (slides[currentIndex].type === 'quiz') {
-      // Don't auto-advance on quiz
       return;
     }
 
@@ -82,7 +78,6 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
   };
 
   const handlePress = (evt: any) => {
-    // If on quiz, tapping screen shouldn't advance unless they answered
     if (slides[currentIndex].type === 'quiz') return;
 
     const x = evt.nativeEvent.locationX;
@@ -99,7 +94,6 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
   const handleQuizSelect = (isCorrect: boolean) => {
     Haptics.impactAsync(isCorrect ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Heavy);
     setQuizAnswered(true);
-    // Auto advance after 1.5 seconds if correct
     setTimeout(() => {
       onComplete();
     }, 1500);
@@ -109,7 +103,6 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
 
   return (
     <View style={styles.container}>
-      {/* Background visual representation */}
       <LinearGradient
         colors={[Theme.colors.palette.slate[900], Theme.colors.palette.slate[800]]}
         style={StyleSheet.absoluteFill}
@@ -124,7 +117,6 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
       </LinearGradient>
 
       <SafeAreaView style={styles.safeArea}>
-        {/* Progress Bars */}
         <View style={styles.progressContainer}>
           {slides.map((_, i) => (
             <View key={i} style={styles.progressBarBg}>
@@ -139,7 +131,6 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
           ))}
         </View>
 
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerCount}>{currentIndex + 1} / {slides.length}</Text>
           <Text style={styles.headerTitle}>{technique.name}</Text>
@@ -148,7 +139,6 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
           </TouchableOpacity>
         </View>
 
-        {/* Story Content Area */}
         {currentSlide.type !== 'quiz' ? (
           <TouchableWithoutFeedback 
             onPress={handlePress}
@@ -170,7 +160,7 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
                 <Text style={styles.quizHeaderTitle}>Quick Question</Text>
               </View>
               <Text style={styles.quizQuestion}>{quiz.question}</Text>
-              <Text style={styles.quizSubtitle}>Select the correct reason</Text>
+              <Text style={styles.quizSubtitle}>Choose the best answer</Text>
 
               <View style={styles.optionsContainer}>
                 {quiz.options.map((opt: any, i: number) => {
@@ -301,7 +291,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   quizCard: {
-    backgroundColor: 'rgba(30, 41, 59, 0.75)', // Glassmorphism dark slate
+    backgroundColor: 'rgba(30, 41, 59, 0.75)',
     padding: 24,
     borderRadius: Theme.borderRadius.xl,
     borderWidth: 1,

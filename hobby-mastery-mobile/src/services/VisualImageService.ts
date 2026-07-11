@@ -4,8 +4,7 @@ const buildPrompt = (hobby: string, topic: string): string => {
   const normalizedHobby = normalize(hobby);
   const normalizedTopic = normalize(topic);
 
-  // We want a beautiful, app-friendly illustration or 3D render, not overly realistic or messy photos
-  return `A highly detailed, beautiful, premium, clean illustration of ${normalizedTopic} in the context of ${normalizedHobby}. Professional app UI asset style, vibrant colors, clear subject, no text.`;
+  return `A clean illustration of ${normalizedTopic} for someone learning ${normalizedHobby}. Clear subject, simple background, no text.`;
 };
 
 const buildImageUrl = (prompt: string, seed: number, width: number, height: number): string => {

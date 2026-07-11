@@ -54,7 +54,6 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: 
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={onBack}>
           <Feather name="chevron-left" size={22} color={Theme.colors.text.primary} />
@@ -72,7 +71,6 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: 
         </View>
       </View>
 
-      {/* Progress Segments */}
       <View style={styles.progressContainer}>
         <View style={styles.progressRow}>
           {technique.lesson.steps.map((_, i) => (
@@ -85,13 +83,11 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: 
         <Text style={styles.cardCount}>Card {activeStep + 1} of {totalSteps}</Text>
       </View>
 
-      {/* Content */}
       <Animated.ScrollView
         style={[styles.scrollArea, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Visual Block (White Card style from Chess target) */}
         <View style={styles.visualBlock}>
           {!imageFailed ? (
             <Image
@@ -105,7 +101,6 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: 
           )}
         </View>
 
-        {/* Explanation Card */}
         <View style={styles.explanationCard}>
           <View style={styles.explanationHeader}>
             <View style={styles.explanationIcon}>
@@ -118,7 +113,6 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: 
 
       </Animated.ScrollView>
 
-      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.primaryBtn}

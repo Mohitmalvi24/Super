@@ -20,14 +20,13 @@ export const LearnTab = ({ plan, onOpenStory }: LearnTabProps) => {
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Discover</Text>
-        <Text style={styles.subtitle}>Bite-sized stories to master {hobby}.</Text>
+        <Text style={styles.title}>Learn</Text>
+        <Text style={styles.subtitle}>Short reads for practicing {hobby}.</Text>
       </View>
 
       <View style={styles.grid}>
         {techniques.map((tech, idx) => {
           const isMastered = tech.status === 'mastered';
-          // Use colors based on index for a vibrant discover feed
           const gradientColors = [
             [Theme.colors.palette.violet[500], Theme.colors.palette.violet[700]],
             [Theme.colors.palette.emerald[500], Theme.colors.palette.emerald[700]],

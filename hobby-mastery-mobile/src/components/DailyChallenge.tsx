@@ -129,7 +129,7 @@ export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color={Theme.colors.text.muted} />
-        <Text style={styles.loadingText}>Loading today's challenge...</Text>
+        <Text style={styles.loadingText}>Loading challenge...</Text>
       </View>
     );
   }

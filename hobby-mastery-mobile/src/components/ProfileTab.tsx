@@ -26,8 +26,8 @@ export const ProfileTab = ({ plan, totalXp, challengesCompleted, onReset }: Prof
       <LinearGradient
         colors={[Theme.colors.palette.violet[600], Theme.colors.palette.violet[800]]}
         style={styles.profileCard}
-        start={{x: 0, y: 0}}
-        end={{x: 1, y: 1}}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
         <View style={styles.profileHeaderRow}>
           <View style={styles.avatar}>
@@ -78,33 +78,6 @@ export const ProfileTab = ({ plan, totalXp, challengesCompleted, onReset }: Prof
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Settings</Text>
-      <View style={styles.menuContainer}>
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={[styles.menuIcon, { backgroundColor: Theme.colors.surfaceElevated }]}>
-            <Feather name="user" size={18} color={Theme.colors.text.secondary} />
-          </View>
-          <Text style={styles.menuText}>Edit Profile</Text>
-          <Feather name="chevron-right" size={20} color={Theme.colors.text.muted} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={[styles.menuIcon, { backgroundColor: Theme.colors.surfaceElevated }]}>
-            <Feather name="bell" size={18} color={Theme.colors.text.secondary} />
-          </View>
-          <Text style={styles.menuText}>Notifications</Text>
-          <Feather name="chevron-right" size={20} color={Theme.colors.text.muted} />
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={[styles.menuIcon, { backgroundColor: Theme.colors.surfaceElevated }]}>
-            <Feather name="help-circle" size={18} color={Theme.colors.text.secondary} />
-          </View>
-          <Text style={styles.menuText}>Help & Support</Text>
-          <Feather name="chevron-right" size={20} color={Theme.colors.text.muted} />
-        </TouchableOpacity>
-      </View>
-
       <Text style={styles.sectionTitle}>Danger Zone</Text>
       <View style={styles.menuContainer}>
         <TouchableOpacity style={styles.dangerButton} onPress={onReset} activeOpacity={0.8}>
@@ -133,7 +106,7 @@ const styles = StyleSheet.create({
     ...Theme.typography.displayMd,
     color: Theme.colors.text.primary,
   },
-  
+
   profileCard: {
     borderRadius: Theme.borderRadius.xl,
     padding: 24,
@@ -179,7 +152,7 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  
+
   levelSection: {
     backgroundColor: 'rgba(0,0,0,0.2)',
     padding: 16,

@@ -1,0 +1,11 @@
+{
+  "name": "super-monorepo",
+  "private": true,
+  "workspaces": [
+    "hobby-mastery-mobile",
+    "hobby-mastery-backend"
+  ],
+  "scripts": {
+    "build:web": "npm --prefix hobby-mastery-mobile run build:web"
+  }
+}

@@ -51,7 +51,6 @@ export const CompletionScreen = ({
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Confetti / Celebration Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.closeBtn} onPress={onBackToHome}>
           <Feather name="x" size={20} color={Theme.colors.text.primary} />
@@ -73,7 +72,6 @@ export const CompletionScreen = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
             <Text style={styles.statEmoji}>💎</Text>
@@ -87,7 +85,6 @@ export const CompletionScreen = ({
           </View>
         </View>
 
-        {/* Progress Card */}
         <View style={styles.progressCard}>
           <Text style={styles.progressTitle}>Your Progress</Text>
           <View style={styles.progressLabels}>
@@ -107,7 +104,6 @@ export const CompletionScreen = ({
           </View>
         </View>
 
-        {/* What's Next */}
         {nextTechnique && (
           <View style={styles.nextSection}>
             <Text style={styles.nextTitle}>What's Next?</Text>
@@ -296,7 +292,7 @@ const styles = StyleSheet.create({
   },
   progressKnob: {
     position: 'absolute',
-    right: 0, // This would ideally track with the animated value but kept simple for now
+    right: 0,
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -321,7 +317,7 @@ const styles = StyleSheet.create({
   nextCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Theme.colors.successLight, // A soft green background like in the design
+    backgroundColor: Theme.colors.successLight,
     borderRadius: Theme.borderRadius.xl,
     padding: 16,
     borderWidth: 1,

@@ -387,7 +387,7 @@ const styles = StyleSheet.create({
   bottomGradient: {
     paddingHorizontal: Theme.spacing.xl,
     paddingTop: Theme.spacing.xxl,
-    paddingBottom: Theme.spacing.lg, // Increased bottom padding to move button up
+    paddingBottom: Theme.spacing.lg,
     alignItems: 'center',
   },
   startButton: {

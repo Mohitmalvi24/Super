@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useRef, useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  Alert, Animated, Dimensions, FlatList, Image,
+  Alert, Animated, Dimensions, FlatList, Image, BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -158,6 +158,24 @@ export const DashboardScreen = () => {
     Animated.timing(fadeAnim, { toValue: 1, duration: 350, useNativeDriver: true }).start();
   }, [activeTab]);
 
+  useEffect(() => {
+    const isSubScreenOpen = !!(activeLessonId || activePracticeId || activeStoryId);
+
+    const onHardwareBackPress = () => {
+      if (isSubScreenOpen) {
+        setActiveLessonId(null);
+        setActivePracticeId(null);
+        setActiveStoryId(null);
+        setActiveTab('home');
+        return true;
+      }
+      return false;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onHardwareBackPress);
+    return () => subscription.remove();
+  }, [activeLessonId, activePracticeId, activeStoryId]);
+
   const metrics = useMemo(() => {
     if (!plan?.techniques) return null;
 
@@ -284,7 +302,10 @@ export const DashboardScreen = () => {
       return (
         <LessonScreen
           technique={tech}
-          onBack={() => setActiveLessonId(null)}
+          onBack={() => {
+            setActiveLessonId(null);
+            setActiveTab('home');
+          }}
           onComplete={() => handleLessonComplete(tech.id)}
           totalXp={totalXp}
           hobby={plan.hobby}
@@ -303,13 +324,12 @@ export const DashboardScreen = () => {
   const renderConceptCard = ({ item, index }: { item: Technique; index: number }) => {
     const isMastered = item.status === 'mastered';
     const displayName = getDisplayName(plan.hobby, item, index);
-    
-    // Dynamic color logic based on index or level for the cards to match the target UI
+
     const colorScheme = [
-      { bg: '#FEF3C7', text: '#D97706', arrowBg: '#FEF3C7' }, // Yellow/Amber
-      { bg: '#D1FAE5', text: '#059669', arrowBg: '#D1FAE5' }, // Green
-      { bg: '#DBEAFE', text: '#2563EB', arrowBg: '#DBEAFE' }, // Blue
-      { bg: '#F3E8FF', text: '#7C3AED', arrowBg: '#F3E8FF' }, // Purple
+      { bg: '#FEF3C7', text: '#D97706', arrowBg: '#FEF3C7' },
+      { bg: '#D1FAE5', text: '#059669', arrowBg: '#D1FAE5' },
+      { bg: '#DBEAFE', text: '#2563EB', arrowBg: '#DBEAFE' },
+      { bg: '#F3E8FF', text: '#7C3AED', arrowBg: '#F3E8FF' },
     ][index % 4];
 
     return (
@@ -391,7 +411,7 @@ export const DashboardScreen = () => {
             <Text style={styles.continueTitle}>
               {getDisplayName(plan.hobby, metrics.nextTech, plan.techniques.findIndex(t => t.id === metrics.nextTech?.id))}
             </Text>
-            
+
             <View style={styles.progressRow}>
               <View style={styles.progressBarContainer}>
                 <View style={[styles.progressBar, { width: `${metrics.progress}%` }]} />
@@ -399,7 +419,7 @@ export const DashboardScreen = () => {
               <Text style={styles.continueProgress}>{metrics.progress}% completed</Text>
             </View>
           </View>
-          
+
           <View style={styles.continueRight}>
             <View style={styles.continueVisualBg}>
               <TechniqueVisual
@@ -552,7 +572,6 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
 
-  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -627,7 +646,6 @@ const styles = StyleSheet.create({
     borderColor: Theme.colors.borderLight,
   },
 
-  /* Continue Learning */
   continueCard: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
@@ -710,7 +728,6 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
   },
 
-  /* Section Headers */
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -733,7 +750,6 @@ const styles = StyleSheet.create({
     color: Theme.colors.text.muted,
   },
 
-  /* Concept Cards */
   conceptsRow: {
     paddingHorizontal: 20,
     gap: 12,
@@ -968,7 +984,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  /* Your Progress */
   progressCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1036,10 +1051,9 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
 
-  /* Tab Bar */
   tabBar: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 18,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -1050,6 +1064,9 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingHorizontal: 12,
     justifyContent: 'space-around',
+    marginHorizontal: 12,
+    borderRadius: 24,
+    ...Theme.shadow.md,
   },
   tabItem: {
     alignItems: 'center',
