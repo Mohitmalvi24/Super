@@ -6,7 +6,7 @@ const VIDEO_CACHE_KEY_PREFIX = 'video_cache_';
 const VIDEO_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 
-const DEMO_MODE = __DEV__;
+const DEMO_MODE = false;
 
 export interface VideoGenerationResult {
   videoUrl: string;
