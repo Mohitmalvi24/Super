@@ -9,6 +9,7 @@ import { Theme } from '../utils/theme';
 import { Technique } from '../types';
 import { VisualImageService } from '../services/VisualImageService';
 import { LearningContext } from '../store/LearningContext';
+import { VideoSection } from './VideoSection';
 import { useContext } from 'react';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -100,6 +101,13 @@ export const LessonScreen = ({ technique, onBack, onComplete, totalXp, hobby }: 
             <Text style={styles.visualEmoji}>{technique.emoji}</Text>
           )}
         </View>
+
+        {/* Video Section - Display generated video if available */}
+        <VideoSection
+          technique={technique}
+          hobby={lessonHobby}
+          autoGenerate={false}
+        />
 
         <View style={styles.explanationCard}>
           <View style={styles.explanationHeader}>
@@ -264,7 +272,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#FEF3C7', // light amber
+    backgroundColor: '#FEF3C7',
     alignItems: 'center',
     justifyContent: 'center',
   },
