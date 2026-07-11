@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { Feather } from '@expo/vector-icons';
 import { Theme } from '../utils/theme';
 import { VideoGenerationResult } from '../services/VideoService';
@@ -51,18 +52,35 @@ export const VideoPlayer = ({
     );
   }
 
-
   if (video) {
+    const videoHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+          <style>
+            *{margin:0;padding:0;box-sizing:border-box}
+            html,body{width:100%;height:100%;background:#000;overflow:hidden}
+            video{width:100%;height:100%;object-fit:contain}
+          </style>
+        </head>
+        <body>
+          <video autoplay playsinline loop controls src="${video.videoUrl}"></video>
+        </body>
+      </html>
+    `;
     return (
       <View style={styles.container}>
         <View style={styles.videoContainer}>
-          <View style={styles.videoPlaceholder}>
-            <Text style={styles.videoPlaceholderEmoji}>🎬</Text>
-            <Text style={styles.videoPlaceholderText}>Video Ready!</Text>
-            <Text style={styles.videoMetadata}>
-              {video.format.toUpperCase()} • {video.resolution} • {video.frameRate}fps
-            </Text>
-          </View>
+          <WebView
+            source={{ html: videoHtml }}
+            style={styles.webview}
+            scrollEnabled={false}
+            javaScriptEnabled={true}
+            allowsInlineMediaPlayback={true}
+            mediaPlaybackRequiresUserAction={false}
+            allowsFullscreenVideo={true}
+          />
         </View>
         <View style={styles.videoMetadataContainer}>
           <View style={styles.metadataRow}>
@@ -81,7 +99,6 @@ export const VideoPlayer = ({
       </View>
     );
   }
-
 
   return (
     <View style={styles.container}>
@@ -162,29 +179,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  videoPlaceholder: {
+  webview: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: 'rgba(124, 58, 237, 0.05)',
-    borderRadius: Theme.borderRadius.lg,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: Theme.colors.palette.violet[300],
-  },
-  videoPlaceholderEmoji: {
-    fontSize: 48,
-    marginBottom: 12,
-  },
-  videoPlaceholderText: {
-    ...Theme.typography.headingMd,
-    color: Theme.colors.text.primary,
-    marginBottom: 4,
-  },
-  videoMetadata: {
-    ...Theme.typography.bodySm,
-    color: Theme.colors.text.secondary,
+    backgroundColor: '#000000',
   },
   videoMetadataContainer: {
     flexDirection: 'row',
