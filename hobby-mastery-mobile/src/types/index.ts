@@ -32,8 +32,10 @@ export interface Technique {
   name: string;
   description: string;
   category: string;
+  emoji: string;
   estimatedMinutes: number;
-  level: SkillLevel;
+  level: string;
+  visualDescription: string;
   status: TechniqueStatus;
   masteredAt?: number;
   reviewDueAt?: number;
@@ -62,6 +64,8 @@ export interface DailyChallenge {
   title: string;
   description: string;
   content: string;
+  emoji: string;
+  visualHint: string;
   options?: QuizOption[];
   durationMinutes: number;
   xpReward: number;

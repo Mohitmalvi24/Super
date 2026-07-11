@@ -8,6 +8,8 @@ interface LlmChallengeResponse {
   title: string;
   description: string;
   content: string;
+  emoji?: string;
+  visualHint?: string;
   options?: { text: string; isCorrect: boolean }[];
   durationMinutes: number;
   xpReward: number;
@@ -35,6 +37,8 @@ export async function generateDailyChallenge(
       title: parsed.title,
       description: parsed.description,
       content: parsed.content,
+      emoji: parsed.emoji || '🎯',
+      visualHint: parsed.visualHint || parsed.description,
       options: parsed.options,
       durationMinutes: parsed.durationMinutes || 3,
       xpReward: parsed.xpReward || 20,
@@ -56,6 +60,8 @@ function buildMockChallenge(hobby: string): DailyChallenge {
       title: 'Quick Knowledge Check',
       description: `Test your understanding of ${hobby} fundamentals.`,
       content: `Which of the following is the most important factor for improving at ${hobby}?`,
+      emoji: '❓',
+      visualHint: `A learner pondering a question about ${hobby} fundamentals`,
       options: [
         { text: 'Practicing for long hours once a week', isCorrect: false },
         { text: 'Consistent daily practice with focused goals', isCorrect: true },
@@ -69,7 +75,9 @@ function buildMockChallenge(hobby: string): DailyChallenge {
       type: 'timed-drill',
       title: 'Speed Drill',
       description: 'A quick focused exercise to sharpen your skills.',
-      content: `Set a 3-minute timer. Practice the most basic movement or technique in ${hobby} as slowly and precisely as possible. Focus entirely on form — not speed. Count how many perfect repetitions you can complete.`,
+      content: `Set a 3-minute timer. Practice the most basic movement or technique in ${hobby} as slowly and precisely as possible. Focus entirely on form — not speed.`,
+      emoji: '⏱️',
+      visualHint: `A focused practitioner performing a precision drill in ${hobby}`,
       durationMinutes: 3,
       xpReward: 25,
     },
@@ -77,7 +85,9 @@ function buildMockChallenge(hobby: string): DailyChallenge {
       type: 'creative-prompt',
       title: 'Creative Expression',
       description: 'Apply your skills in a creative way.',
-      content: `Take something you have learned in ${hobby} and combine it with a completely different idea. For example, apply a technique from ${hobby} to solve a problem in your daily life, or explain a ${hobby} concept using a food metaphor. Write down or practice your creative fusion.`,
+      content: `Take something you have learned in ${hobby} and combine it with a completely different idea. Write down or practice your creative fusion.`,
+      emoji: '🎨',
+      visualHint: `A creative interpretation of ${hobby} concepts applied in a new way`,
       durationMinutes: 5,
       xpReward: 30,
     },
@@ -85,7 +95,9 @@ function buildMockChallenge(hobby: string): DailyChallenge {
       type: 'reflection',
       title: 'Learning Reflection',
       description: 'Take a moment to think about your progress.',
-      content: `Think about the last technique you practiced in ${hobby}. What was the hardest part? What surprised you? If you could give one piece of advice to yourself from a week ago, what would it be? Write down your thoughts in 2-3 sentences.`,
+      content: `Think about the last technique you practiced in ${hobby}. What was the hardest part? What surprised you? Write down your thoughts.`,
+      emoji: '💭',
+      visualHint: `A thoughtful moment of self-reflection on the ${hobby} learning journey`,
       durationMinutes: 3,
       xpReward: 20,
     },

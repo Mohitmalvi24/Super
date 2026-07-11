@@ -4,12 +4,14 @@ dotenv.config();
 interface EnvironmentConfig {
   port: number;
   groqApiKey: string | null;
+  groqApiKeyBackup: string | null;
   nodeEnv: string;
 }
 
 const config: EnvironmentConfig = {
   port: parseInt(process.env.PORT || '3000', 10),
-  groqApiKey: process.env.GEMINI_API_KEY || null,
+  groqApiKey: process.env.GROQ_API_KEY || null,
+  groqApiKeyBackup: process.env.GROQ_API_KEY_BACKUP || null,
   nodeEnv: process.env.NODE_ENV || 'development',
 };
 

@@ -7,7 +7,10 @@ interface LlmTechnique {
   name: string;
   description: string;
   category: string;
+  emoji?: string;
   estimatedMinutes: number;
+  level?: string;
+  visualDescription?: string;
   lesson: {
     overview: string;
     steps: { order: number; title: string; body: string }[];
@@ -21,6 +24,18 @@ interface LlmTechnique {
   };
   keyTakeaways: { title: string; detail: string }[];
 }
+
+const CATEGORY_EMOJIS: Record<string, string> = {
+  Basics: '📘',
+  Fundamentals: '🧱',
+  Technique: '🎯',
+  Theory: '📐',
+  Practice: '🏋️',
+  Rhythm: '🥁',
+  Strategy: '♟️',
+  Gear: '🔧',
+  General: '⭐',
+};
 
 export async function generateLearningPlan(
   hobby: string,
@@ -57,8 +72,10 @@ function mapTechniques(raw: LlmTechnique[], level: string): Technique[] {
     name: tech.name,
     description: tech.description,
     category: tech.category || 'Fundamentals',
-    estimatedMinutes: tech.estimatedMinutes || 15,
-    level,
+    emoji: tech.emoji || CATEGORY_EMOJIS[tech.category] || '📖',
+    estimatedMinutes: tech.estimatedMinutes || 3,
+    level: tech.level || level,
+    visualDescription: tech.visualDescription || tech.description,
     status: 'not-started' as const,
     lesson: {
       overview: tech.lesson?.overview || tech.description,
@@ -70,7 +87,7 @@ function mapTechniques(raw: LlmTechnique[], level: string): Technique[] {
       exercise: tech.lesson?.exercise || {
         title: `Practice ${tech.name}`,
         instruction: `Spend focused time practicing ${tech.name} with deliberate repetition.`,
-        durationMinutes: tech.estimatedMinutes || 15,
+        durationMinutes: tech.estimatedMinutes || 3,
         goal: 'Complete one full practice session.',
       },
       proTips: tech.lesson?.proTips || [],
@@ -91,8 +108,10 @@ function buildMockPlan(hobby: string, level: string): LearningPlan {
         name: 'The Fundamentals',
         description: `Core concepts of ${hobby} to build a strong base.`,
         category: 'Basics',
-        estimatedMinutes: 15,
-        level,
+        emoji: '📘',
+        estimatedMinutes: 3,
+        level: 'Beginner',
+        visualDescription: `A focused learner practicing the fundamental movements of ${hobby} with careful attention to form.`,
         status: 'not-started',
         lesson: {
           overview: `This lesson introduces the foundational principles of ${hobby}. Understanding these basics is essential before moving to advanced techniques.`,
@@ -104,7 +123,7 @@ function buildMockPlan(hobby: string, level: string): LearningPlan {
           exercise: {
             title: 'Foundation Drill',
             instruction: `Set a timer and practice the basic stance and movements for ${hobby}. Focus on slow, deliberate repetitions.`,
-            durationMinutes: 10,
+            durationMinutes: 3,
             goal: 'Complete 3 sets of 10 slow repetitions with correct form.',
           },
           proTips: [
@@ -123,8 +142,10 @@ function buildMockPlan(hobby: string, level: string): LearningPlan {
         name: 'Structured Practice',
         description: 'How to practice effectively and build lasting habits.',
         category: 'Practice',
-        estimatedMinutes: 20,
-        level,
+        emoji: '🏋️',
+        estimatedMinutes: 3,
+        level: 'Beginner',
+        visualDescription: 'A practice session broken into warm-up, focused practice, and cool-down phases.',
         status: 'not-started',
         lesson: {
           overview: 'A structured practice routine separates amateurs from experts. This lesson covers how to optimize your practice time.',
@@ -134,9 +155,9 @@ function buildMockPlan(hobby: string, level: string): LearningPlan {
             { order: 3, title: 'Cool Down', body: 'End your session with something fun and creative within the hobby.' },
           ],
           exercise: {
-            title: 'The 20-Minute Focus Block',
-            instruction: 'Use the Pomodoro technique: 5 min warm-up, 10 min focused practice, 5 min cool-down.',
-            durationMinutes: 20,
+            title: 'The Focus Block',
+            instruction: 'Use the Pomodoro technique: warm-up, focused practice, cool-down.',
+            durationMinutes: 3,
             goal: 'Complete the block without distraction.',
           },
           proTips: [

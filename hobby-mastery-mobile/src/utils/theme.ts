@@ -11,6 +11,18 @@ const palette = {
     800: '#1E293B',
     900: '#0F172A',
   },
+  violet: {
+    50: '#F5F3FF',
+    100: '#EDE9FE',
+    200: '#DDD6FE',
+    300: '#C4B5FD',
+    400: '#A78BFA',
+    500: '#8B5CF6',
+    600: '#7C3AED',
+    700: '#6D28D9',
+    800: '#5B21B6',
+    900: '#4C1D95',
+  },
   emerald: {
     50: '#ECFDF5',
     100: '#D1FAE5',
@@ -52,13 +64,6 @@ const palette = {
     500: '#EF4444',
     600: '#DC2626',
   },
-  violet: {
-    50: '#F5F3FF',
-    100: '#EDE9FE',
-    400: '#A78BFA',
-    500: '#8B5CF6',
-    600: '#7C3AED',
-  },
   rose: {
     400: '#FB7185',
     500: '#F43F5E',
@@ -67,14 +72,17 @@ const palette = {
 
 export const Theme = {
   colors: {
-    primary: palette.slate[900],
-    primaryLight: palette.slate[800],
+    primary: palette.violet[600],
+    primaryLight: palette.violet[500],
+    primaryDark: palette.violet[800],
+    primaryBg: palette.violet[50],
     accent: palette.amber[400],
     accentDark: palette.amber[600],
 
-    background: palette.slate[50],
+    background: '#FFFFFF',
+    backgroundSecondary: palette.slate[50],
     surface: '#FFFFFF',
-    surfaceElevated: palette.slate[100],
+    surfaceElevated: palette.slate[50],
 
     text: {
       primary: palette.slate[900],
@@ -125,9 +133,9 @@ export const Theme = {
   },
 
   typography: {
-    displayLg: { fontSize: 36, fontWeight: '800' as const, letterSpacing: -0.5 },
-    displayMd: { fontSize: 28, fontWeight: '800' as const, letterSpacing: -0.3 },
-    displaySm: { fontSize: 22, fontWeight: '800' as const, letterSpacing: -0.3 },
+    displayLg: { fontSize: 32, fontWeight: '800' as const, letterSpacing: -0.5 },
+    displayMd: { fontSize: 24, fontWeight: '800' as const, letterSpacing: -0.3 },
+    displaySm: { fontSize: 20, fontWeight: '800' as const, letterSpacing: -0.3 },
     headingLg: { fontSize: 18, fontWeight: '700' as const },
     headingMd: { fontSize: 16, fontWeight: '700' as const },
     headingSm: { fontSize: 14, fontWeight: '700' as const },

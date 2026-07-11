@@ -9,44 +9,57 @@ const MODELS = [
 const RETRY_DELAY_MS = 1200;
 
 export async function callLlm(prompt: string): Promise<string> {
-  const apiKey = config.groqApiKey;
-  if (!apiKey) {
+  const keys = [
+    config.groqApiKey,
+    config.groqApiKeyBackup
+  ].filter(Boolean) as string[];
+
+  if (keys.length === 0) {
     throw new Error('Groq API key not configured');
   }
 
   for (const model of MODELS) {
-    try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          response_format: { type: 'json_object' },
-        }),
-      });
+    let allKeysRateLimited = true;
 
-      if (response.status === 429) {
-        await delay(RETRY_DELAY_MS);
+    for (const key of keys) {
+      try {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${key}`,
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: 'user', content: prompt }],
+            temperature: 0.7,
+            response_format: { type: 'json_object' },
+          }),
+        });
+
+        if (response.status === 429) {
+          continue; // Try the next key
+        }
+
+        allKeysRateLimited = false;
+
+        if (!response.ok) {
+          continue; // Try next key or model
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+      } catch {
         continue;
       }
+    }
 
-      if (!response.ok) {
-        continue;
-      }
-
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } catch {
-      continue;
+    if (allKeysRateLimited) {
+      await delay(RETRY_DELAY_MS);
     }
   }
 
-  throw new Error('All LLM models failed or are rate-limited');
+  throw new Error('All LLM models and backup keys failed or are rate-limited');
 }
 
 export function parseLlmJson<T>(raw: string): T {
