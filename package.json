@@ -6,6 +6,6 @@
     "hobby-mastery-backend"
   ],
   "scripts": {
-    "build:web": "npm --prefix hobby-mastery-mobile run build:web"
+    "build:web": "cd hobby-mastery-mobile && npm run build:web"
   }
 }

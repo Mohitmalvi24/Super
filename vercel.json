@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd hobby-mastery-mobile && npm run build:web",
+  "buildCommand": "npm run build:web",
   "outputDirectory": "hobby-mastery-mobile/dist",
   "rewrites": [
     {
@@ -8,3 +8,4 @@
     }
   ]
 }
+
