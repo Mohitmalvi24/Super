@@ -148,17 +148,17 @@ function buildMockPlan(hobby: string, level: string): LearningPlan {
       {
         id: 'mock-2',
         name: 'Structured Practice',
-        description: 'How to practice effectively and build lasting habits.',
+        description: `How to practice effectively and build lasting habits for ${hobby}.`,
         category: 'Practice',
-        emoji: '🏋️',
+        emoji: '🧠',
         estimatedMinutes: 3,
         level: 'Beginner',
-        visualDescription: 'A practice session broken into warm-up, focused practice, and cool-down phases.',
+        visualDescription: `A practice session broken into warm-up, focused practice, and cool-down phases for ${hobby}.`,
         status: 'not-started',
         lesson: {
-          overview: 'A structured practice routine separates amateurs from experts. This lesson covers how to optimize your practice time.',
+          overview: `A structured practice routine separates amateurs from experts. This lesson covers how to optimize your practice time for ${hobby}.`,
           steps: [
-            { order: 1, title: 'Warm Up', body: 'Always start with a 3-5 minute warm-up. Review basic movements to get your mind and body ready.' },
+            { order: 1, title: 'Warm Up', body: `Always start with a 3-5 minute warm-up. Review basic movements or concepts to get your mind and body ready for ${hobby}.` },
             { order: 2, title: 'Targeted Practice', body: 'Pick one specific weakness and spend 10 minutes working only on that.' },
             { order: 3, title: 'Cool Down', body: 'End your session with something fun and creative within the hobby.' },
           ],

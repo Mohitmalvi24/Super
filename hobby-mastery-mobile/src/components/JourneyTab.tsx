@@ -27,6 +27,7 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
   const hours = Math.floor(learningTime / 60);
   const minutes = learningTime % 60;
   const level = Math.floor(totalXp / 500) + 1;
+  const allMastered = activeTechniques.length > 0 && masteredCount === activeTechniques.length;
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.container}>
@@ -136,20 +137,28 @@ export const JourneyTab = ({ plan, totalXp, onOpenLesson }: JourneyTabProps) => 
 
         <View style={styles.nodeContainer}>
            <View style={styles.circleColumn}>
-             <View style={[styles.circle, styles.circleTrophy]}>
+             <View style={[styles.circle, allMastered ? styles.circleDone : styles.circleTrophy]}>
                <Text style={{fontSize: 16}}>🏆</Text>
              </View>
            </View>
-           <View style={[styles.card, styles.cardLocked, { borderStyle: 'solid' }]}>
+           <View style={[styles.card, !allMastered && styles.cardLocked, { borderStyle: 'solid' }]}>
              <View style={styles.cardVisual}>
                <Text style={styles.cardEmoji}>👑</Text>
              </View>
              <View style={styles.cardContent}>
-               <Text style={styles.cardTitleLocked}>{hobby} Master</Text>
-               <Text style={styles.cardStatusLocked}>Final Goal</Text>
+               <Text style={[styles.cardTitle, !allMastered && styles.cardTitleLocked]}>{hobby} Master</Text>
+               <Text style={allMastered ? styles.cardStatusSuccess : styles.cardStatusLocked}>
+                 {allMastered ? 'Goal Achieved!' : 'Final Goal'}
+               </Text>
              </View>
              <View style={styles.cardAction}>
-               <Feather name="lock" size={16} color={Theme.colors.warning} />
+               {allMastered ? (
+                 <View style={styles.checkCircle}>
+                   <Feather name="check" size={12} color={Theme.colors.success} />
+                 </View>
+               ) : (
+                 <Feather name="lock" size={16} color={Theme.colors.warning} />
+               )}
              </View>
            </View>
         </View>

@@ -65,7 +65,7 @@ export const VideoPlayer = ({
           </style>
         </head>
         <body>
-          <video autoplay playsinline loop controls src="${video.videoUrl}"></video>
+          <video autoplay muted playsinline loop controls src="${video.videoUrl}"></video>
         </body>
       </html>
     `;
