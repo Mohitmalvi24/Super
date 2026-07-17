@@ -562,7 +562,7 @@ const styles = StyleSheet.create({
     borderRadius: Theme.borderRadius.xl,
     padding: 16,
     borderWidth: 1,
-    borderColor: Theme.colors.palette.violet[200],
+    borderColor: Theme.colors.palette.blue[200],
   },
   coachAvatar: {
     width: 48,

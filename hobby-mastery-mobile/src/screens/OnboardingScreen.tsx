@@ -2,7 +2,7 @@ import React, { useState, useContext, useMemo, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, ScrollView, Alert, Keyboard, Animated,
-  Dimensions, Platform,
+  Dimensions, Platform, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { LearningContext } from '../store/LearningContext';
 import { ApiClient } from '../services/ApiClient';
 import { Theme } from '../utils/theme';
+import AppLogo from '../../assets/AppRealLogo.png'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -24,7 +25,7 @@ const CATEGORIES: HobbyCategory[] = [
   {
     label: 'Music',
     icon: '🎵',
-    color: Theme.colors.palette.violet[500],
+    color: Theme.colors.palette.blue[500],
     hobbies: ['Guitar', 'Piano', 'Drums', 'Singing', 'Ukulele'],
   },
   {
@@ -124,7 +125,7 @@ export const OnboardingScreen = () => {
         >
           <View style={styles.heroSection}>
             <View style={styles.logoBadge}>
-              <Text style={styles.logoEmoji}>⚡</Text>
+              <Image source={AppLogo} style={styles.logoImage} resizeMode="contain" />
             </View>
             <Text style={styles.title}>Master{'\n'}Something New</Text>
             <Text style={styles.subtitle}>
@@ -268,17 +269,17 @@ const styles = StyleSheet.create({
     marginBottom: Theme.spacing.xxl,
   },
   logoBadge: {
-    width: 56,
-    height: 56,
+    width: 80,
+    height: 80,
     borderRadius: 18,
-    backgroundColor: Theme.colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Theme.spacing.lg,
-    ...Theme.shadow.lg,
+
   },
-  logoEmoji: {
-    fontSize: 24,
+  logoImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
   },
   title: {
     ...Theme.typography.displayLg,

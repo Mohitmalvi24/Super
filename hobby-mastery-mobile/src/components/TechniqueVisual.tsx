@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   tacticLine: {
     position: 'absolute',
     height: 2,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#2563EB',
     borderRadius: 1,
   },
   tacticLineOne: {

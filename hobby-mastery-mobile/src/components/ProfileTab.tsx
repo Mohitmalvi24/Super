@@ -24,7 +24,7 @@ export const ProfileTab = ({ plan, totalXp, challengesCompleted, onReset }: Prof
       </View>
 
       <LinearGradient
-        colors={[Theme.colors.palette.violet[600], Theme.colors.palette.violet[800]]}
+        colors={[Theme.colors.palette.blue[600], Theme.colors.palette.blue[800]]}
         style={styles.profileCard}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}

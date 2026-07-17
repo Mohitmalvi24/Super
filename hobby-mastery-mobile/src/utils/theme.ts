@@ -11,17 +11,17 @@ const palette = {
     800: '#1E293B',
     900: '#0F172A',
   },
-  violet: {
-    50: '#F5F3FF',
-    100: '#EDE9FE',
-    200: '#DDD6FE',
-    300: '#C4B5FD',
-    400: '#A78BFA',
-    500: '#8B5CF6',
-    600: '#7C3AED',
-    700: '#6D28D9',
-    800: '#5B21B6',
-    900: '#4C1D95',
+  blue: {
+    50: '#EFF6FF',
+    100: '#DBEAFE',
+    200: '#BFDBFE',
+    300: '#93C5FD',
+    400: '#60A5FA',
+    500: '#3B82F6',
+    600: '#2563EB',
+    700: '#1D4ED8',
+    800: '#1E40AF',
+    900: '#1E3A8A',
   },
   emerald: {
     50: '#ECFDF5',
@@ -72,10 +72,10 @@ const palette = {
 
 export const Theme = {
   colors: {
-    primary: palette.violet[600],
-    primaryLight: palette.violet[500],
-    primaryDark: palette.violet[800],
-    primaryBg: palette.violet[50],
+    primary: palette.blue[600],
+    primaryLight: palette.blue[500],
+    primaryDark: palette.blue[800],
+    primaryBg: palette.blue[50],
     accent: palette.amber[400],
     accentDark: palette.amber[600],
 
@@ -170,3 +170,4 @@ export const Theme = {
     },
   },
 } as const;
+// Trigger HMR

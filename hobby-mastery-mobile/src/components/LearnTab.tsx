@@ -28,7 +28,7 @@ export const LearnTab = ({ plan, onOpenStory }: LearnTabProps) => {
         {techniques.map((tech, idx) => {
           const isMastered = tech.status === 'mastered';
           const gradientColors = [
-            [Theme.colors.palette.violet[500], Theme.colors.palette.violet[700]],
+            [Theme.colors.palette.blue[500], Theme.colors.palette.blue[700]],
             [Theme.colors.palette.emerald[500], Theme.colors.palette.emerald[700]],
             [Theme.colors.palette.amber[500], Theme.colors.palette.amber[700]],
             [Theme.colors.palette.sky[500], Theme.colors.palette.sky[700]],

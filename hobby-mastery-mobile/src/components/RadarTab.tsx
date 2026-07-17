@@ -21,7 +21,7 @@ interface RadarTabProps {
   challengesCompleted: number;
 }
 
-const SKILL_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+const SKILL_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#3B82F6', '#EC4899'];
 
 export const RadarTab = ({
   weakestSkill,
@@ -42,10 +42,10 @@ export const RadarTab = ({
       <View style={styles.statsRow}>
         <View style={styles.statCard}>
           <LinearGradient
-            colors={[Theme.colors.palette.violet[50], Theme.colors.palette.violet[100]]}
+            colors={[Theme.colors.palette.blue[50], Theme.colors.palette.blue[100]]}
             style={styles.statCardInner}
           >
-            <Feather name="zap" size={20} color={Theme.colors.palette.violet[500]} />
+            <Feather name="zap" size={20} color={Theme.colors.palette.blue[500]} />
             <Text style={styles.statValue}>{totalXp}</Text>
             <Text style={styles.statLabel}>Total XP</Text>
           </LinearGradient>

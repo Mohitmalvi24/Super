@@ -329,7 +329,7 @@ export const DashboardScreen = () => {
       { bg: '#FEF3C7', text: '#D97706', arrowBg: '#FEF3C7' },
       { bg: '#D1FAE5', text: '#059669', arrowBg: '#D1FAE5' },
       { bg: '#DBEAFE', text: '#2563EB', arrowBg: '#DBEAFE' },
-      { bg: '#F3E8FF', text: '#7C3AED', arrowBg: '#F3E8FF' },
+      { bg: '#F3E8FF', text: '#2563EB', arrowBg: '#F3E8FF' },
     ][index % 4];
 
     return (
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 5,
     borderWidth: 1,
-    borderColor: Theme.colors.palette.violet[200],
+    borderColor: Theme.colors.palette.blue[200],
   },
   streakIcon: { fontSize: 14 },
   badgeTextCol: {
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
   continueLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#2563EB',
     marginBottom: 4,
   },
   continueTitle: {
@@ -679,12 +679,12 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     height: 6,
-    backgroundColor: Theme.colors.palette.violet[100],
+    backgroundColor: Theme.colors.palette.blue[100],
     borderRadius: 3,
   },
   progressBar: {
     height: 6,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#2563EB',
     borderRadius: 3,
   },
   continueProgress: {
@@ -721,7 +721,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#2563EB',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
   seeAll: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#7C3AED',
+    color: '#2563EB',
   },
   challengeTimer: {
     fontSize: 12,
@@ -828,7 +828,7 @@ const styles = StyleSheet.create({
   tacticLine: {
     position: 'absolute',
     height: 2,
-    backgroundColor: '#7C3AED',
+    backgroundColor: '#2563EB',
     borderRadius: 1,
   },
   tacticLineOne: {

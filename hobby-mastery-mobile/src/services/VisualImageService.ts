@@ -9,7 +9,7 @@ const buildPrompt = (hobby: string, topic: string): string => {
 
 const buildImageUrl = (prompt: string, seed: number, width: number, height: number): string => {
   const encodedPrompt = encodeURIComponent(prompt);
-  return `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux&private=true`;
+  return `https://image.pollinations.ai/prompt/${encodedPrompt}.jpg?width=${width}&height=${height}&seed=${seed}&nologo=true&model=flux&private=true`;
 };
 
 export const VisualImageService = {

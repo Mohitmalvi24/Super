@@ -30,7 +30,7 @@ export const VideoPlayer = ({
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={Theme.colors.palette.violet[500]} />
+          <ActivityIndicator size="large" color={Theme.colors.palette.blue[500]} />
           <Text style={styles.loadingText}>Generating instructional video...</Text>
         </View>
       </View>
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
   retryButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: Theme.colors.palette.violet[500],
+    backgroundColor: Theme.colors.palette.blue[500],
     borderRadius: Theme.borderRadius.md,
   },
   retryButtonText: {
@@ -218,3 +218,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 });
+
+// Trigger HMR

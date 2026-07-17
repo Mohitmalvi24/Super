@@ -47,7 +47,7 @@ export const VideoGenerationButton = ({
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="small" color={Theme.colors.palette.violet[500]} />
+        <ActivityIndicator size="small" color={Theme.colors.palette.blue[500]} />
         <Text style={styles.loadingText}>Generating... {elapsedSeconds}s</Text>
       </View>
     );
@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: Theme.colors.palette.violet[500],
+    backgroundColor: Theme.colors.palette.blue[500],
     borderRadius: Theme.borderRadius.md,
     ...Theme.shadow.sm,
   },
   buttonPressed: {
-    backgroundColor: Theme.colors.palette.violet[600],
+    backgroundColor: Theme.colors.palette.blue[600],
     transform: [{ scale: 0.98 }],
   },
   buttonDisabled: {
@@ -128,11 +128,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(124, 58, 237, 0.1)',
     borderRadius: Theme.borderRadius.md,
     borderWidth: 1,
-    borderColor: Theme.colors.palette.violet[300],
+    borderColor: Theme.colors.palette.blue[300],
   },
   loadingText: {
     ...Theme.typography.bodySm,
-    color: Theme.colors.palette.violet[600],
+    color: Theme.colors.palette.blue[600],
     fontWeight: '600',
   },
   errorButton: {
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   dismissText: {
     ...Theme.typography.bodySm,
-    color: Theme.colors.palette.violet[500],
+    color: Theme.colors.palette.blue[500],
     textAlign: 'center',
     fontWeight: '600',
   },

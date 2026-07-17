@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   xpBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Theme.colors.palette.violet[50],
+    backgroundColor: Theme.colors.palette.blue[50],
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 10,
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   swipeHintText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Theme.colors.palette.violet[400],
+    color: Theme.colors.palette.blue[400],
   },
 
   footer: {

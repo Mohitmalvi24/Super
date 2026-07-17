@@ -1,11 +1,12 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Animated, Text, Dimensions } from 'react-native';
+import { View, StyleSheet, Animated, Text, Dimensions, Image } from 'react-native';
 import { Theme } from './src/utils/theme';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LearningProvider, LearningContext } from './src/store/LearningContext';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import AppLogo from './assets/AppRealLogo.png'
 
 const Stack = createNativeStackNavigator();
 
@@ -41,9 +42,9 @@ const AppNavigator = () => {
       <Animated.View style={[styles.splashContainer, { opacity: fadeAnim }]}>
         <Animated.View style={[styles.splashContent, { transform: [{ scale: scaleAnim }, { translateY: -40 }] }]}>
           <View style={styles.logoBadge}>
-            <Text style={styles.splashEmoji}>⚡</Text>
+            <Image source={AppLogo} style={styles.logoImage} resizeMode="contain" />
           </View>
-          <Text style={styles.splashTitle}>Hobby Mastery</Text>
+          <Text style={styles.splashTitle}>Zovian</Text>
           <Text style={styles.splashSubtitle}>Learn something new every day.</Text>
         </Animated.View>
       </Animated.View>
@@ -86,7 +87,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 24,
-    backgroundColor: Theme.colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -96,8 +96,10 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 10,
   },
-  splashEmoji: {
-    fontSize: 40,
+  logoImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
   },
   splashTitle: {
     ...Theme.typography.displayMd,
