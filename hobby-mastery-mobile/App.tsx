@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LearningProvider, LearningContext } from './src/store/LearningContext';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
+import { PrivacyPolicyScreen } from './src/screens/PrivacyPolicyScreen';
 import AppLogo from './assets/AppRealLogo.png'
 
 const Stack = createNativeStackNavigator();
@@ -58,14 +59,26 @@ const AppNavigator = () => {
       ) : (
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
       )}
+      <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
     </Stack.Navigator>
   );
 };
 
 export default function App() {
+  const linking = {
+    prefixes: ['zovian://', 'https://zovian.app'],
+    config: {
+      screens: {
+        PrivacyPolicy: 'privacy-policy',
+        Dashboard: '',
+        Onboarding: 'onboarding',
+      }
+    }
+  };
+
   return (
     <LearningProvider>
-      <NavigationContainer>
+      <NavigationContainer linking={linking}>
         <AppNavigator />
       </NavigationContainer>
     </LearningProvider>

@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Theme } from '../utils/theme';
 import { LearningPlan } from '../types';
+import { useNavigation } from '@react-navigation/native';
 
 interface ProfileTabProps {
   plan: LearningPlan;
@@ -13,6 +14,7 @@ interface ProfileTabProps {
 }
 
 export const ProfileTab = ({ plan, totalXp, challengesCompleted, onReset }: ProfileTabProps) => {
+  const navigation = useNavigation<any>();
   const currentLevel = Math.floor(totalXp / 500) + 1;
   const xpInCurrentLevel = totalXp % 500;
   const progressToNextLevel = (xpInCurrentLevel / 500) * 100;
@@ -76,6 +78,17 @@ export const ProfileTab = ({ plan, totalXp, challengesCompleted, onReset }: Prof
           <Text style={styles.statValue}>{challengesCompleted}</Text>
           <Text style={styles.statLabel}>Challenges</Text>
         </View>
+      </View>
+
+      <Text style={styles.sectionTitle}>Settings & Legal</Text>
+      <View style={styles.menuContainer}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('PrivacyPolicy')}>
+          <View style={[styles.menuIcon, { backgroundColor: Theme.colors.primaryBg }]}>
+            <Feather name="shield" size={16} color={Theme.colors.primary} />
+          </View>
+          <Text style={styles.menuText}>Privacy Policy</Text>
+          <Feather name="chevron-right" size={16} color={Theme.colors.text.muted} />
+        </TouchableOpacity>
       </View>
 
       <Text style={styles.sectionTitle}>Danger Zone</Text>

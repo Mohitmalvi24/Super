@@ -22,7 +22,7 @@ export const AIService = {
       const plan: LearningPlan = await response.json();
       return plan;
     } catch (error) {
-      console.error('Backend request failed:', error);
+      console.warn('Backend request timed out. Falling back to offline/mock plan.');
       return this.getMockPlan(hobby, level);
     }
   },
