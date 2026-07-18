@@ -5,11 +5,15 @@ const BACKEND_URL = 'https://super-rrfr.onrender.com';
 export const AIService = {
   async generateLearningPlan(hobby: string, level: SkillLevel, skippedTechniques: string[] = []): Promise<LearningPlan> {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
       const response = await fetch(`${BACKEND_URL}/api/plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hobby, level, skippedTechniques })
+        body: JSON.stringify({ hobby, level, skippedTechniques }),
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         throw new Error('Failed to generate plan from backend');

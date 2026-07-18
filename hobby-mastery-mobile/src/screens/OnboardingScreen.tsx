@@ -8,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LearningContext } from '../store/LearningContext';
-import { ApiClient } from '../services/ApiClient';
+import { AIService } from '../services/AIService';
 import { Theme } from '../utils/theme';
 import AppLogo from '../../assets/AppRealLogo.png'
 
@@ -91,12 +91,21 @@ export const OnboardingScreen = () => {
 
   const isFormValid = useMemo(() => hobby.trim().length > 2, [hobby]);
 
+  const filteredCategories = useMemo(() => {
+    if (!hobby.trim()) return CATEGORIES;
+    const lower = hobby.trim().toLowerCase();
+    return CATEGORIES.map(cat => ({
+      ...cat,
+      hobbies: cat.hobbies.filter(h => h.toLowerCase().includes(lower))
+    })).filter(cat => cat.hobbies.length > 0 || cat.label.toLowerCase().includes(lower));
+  }, [hobby]);
+
   const handleGenerate = async () => {
     if (!isFormValid || !setPlan) return;
     setIsGenerating(true);
     Keyboard.dismiss();
     try {
-      const plan = await ApiClient.generatePlan(hobby.trim(), 'beginner');
+      const plan = await AIService.generateLearningPlan(hobby.trim(), 'beginner');
       await setPlan(plan);
     } catch {
       Alert.alert('Error', 'Could not generate your plan. Please try again.');
@@ -163,7 +172,7 @@ export const OnboardingScreen = () => {
             contentContainerStyle={styles.categoriesContainer}
             keyboardShouldPersistTaps="handled"
           >
-            {CATEGORIES.map((cat, catIndex) => {
+            {filteredCategories.map((cat, catIndex) => {
               const isExpanded = expandedCategory === catIndex;
               return (
                 <TouchableOpacity
@@ -188,8 +197,8 @@ export const OnboardingScreen = () => {
           {expandedCategory !== null && (
             <View style={styles.hobbyGridWrapper}>
               <View style={styles.hobbyGrid}>
-                {CATEGORIES[expandedCategory].hobbies.map(h => {
-                  const cat = CATEGORIES[expandedCategory];
+                {filteredCategories[expandedCategory]?.hobbies.map(h => {
+                  const cat = filteredCategories[expandedCategory];
                   const isSelected = hobby === h;
                   return (
                     <TouchableOpacity
