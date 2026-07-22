@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Technique } from '../types';
 
 const BACKEND_URL = 'https://super-rrfr.onrender.com';
-const VIDEO_CACHE_KEY_PREFIX = 'video_cache_';
+const VIDEO_CACHE_KEY_PREFIX = 'video_cache_v2_';
 const VIDEO_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 
