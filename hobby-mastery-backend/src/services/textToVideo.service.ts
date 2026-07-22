@@ -214,17 +214,19 @@ export class TextToVideoService {
     const startTime = Date.now();
 
     try {
-      // Bypassing HunyuanVideo API since it requires a HuggingFace Pro subscription.
-      // Returning a high-quality placeholder video so the frontend flow succeeds.
-      await this.delay(2000); // Simulate processing time
+      console.log(`[TextToVideoService] Calling Video API for technique: ${techniqueId}`);
+      const videoBuffer = await this.callVideoAPI(prompt);
+      
+      const base64Video = videoBuffer.toString('base64');
+      const videoUrl = `data:video/mp4;base64,${base64Video}`;
 
       const result: VideoGenerationResult = {
-        videoUrl: `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4`,
+        videoUrl,
         format: 'mp4',
-        resolution: '1080p',
-        frameRate: 30,
-        duration: 15,
-        fileSize: 5000000,
+        resolution: '256x256',
+        frameRate: 8,
+        duration: 2,
+        fileSize: videoBuffer.length,
         generatedAt: Date.now(),
         techniqueId,
       };
@@ -248,7 +250,7 @@ export class TextToVideoService {
   }
 
 
-  private async callHunyuanAPI(prompt: string, retryCount: number = 0): Promise<Buffer> {
+  private async callVideoAPI(prompt: string, retryCount: number = 0): Promise<Buffer> {
     if (!this.apiToken) {
       throw new Error('API token not configured');
     }
@@ -258,7 +260,7 @@ export class TextToVideoService {
       const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
 
       try {
-        const response = await fetch('https://api-inference.huggingface.co/models/Tencent/HunyuanVideo', {
+        const response = await fetch('https://api-inference.huggingface.co/models/damo-vilab/text-to-video-ms-1.7b', {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${this.apiToken}`,
@@ -280,7 +282,7 @@ export class TextToVideoService {
               `[TextToVideoService] Rate limited. Retrying after ${delayMs}ms (attempt ${retryCount + 1}/${MAX_RETRY_ATTEMPTS})`
             );
             await this.delay(delayMs);
-            return this.callHunyuanAPI(prompt, retryCount + 1);
+            return this.callVideoAPI(prompt, retryCount + 1);
           } else {
             throw new Error('RATE_LIMIT: Max retry attempts exceeded');
           }
@@ -288,7 +290,13 @@ export class TextToVideoService {
 
         if (!response.ok) {
           if (response.status === 500 || response.status === 503) {
-            throw new Error('UNAVAILABLE: HunyuanVideo service is temporarily unavailable');
+            if (retryCount < MAX_RETRY_ATTEMPTS) {
+              const delayMs = RETRY_DELAYS_MS[retryCount];
+              console.warn(`[TextToVideoService] Model loading/unavailable. Retrying after ${delayMs}ms`);
+              await this.delay(delayMs);
+              return this.callVideoAPI(prompt, retryCount + 1);
+            }
+            throw new Error('UNAVAILABLE: Video service is temporarily unavailable');
           }
           throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
