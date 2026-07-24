@@ -175,15 +175,8 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
         {currentSlide.type !== 'quiz' ? (
           <TouchableWithoutFeedback 
             onPress={handlePress}
-            
           >
             <View style={styles.contentArea}>
-              
-              
-
-              
-
-              
               {loadingShorts && !currentShort && (
                 <View style={styles.loadingContainer}>
                    <ActivityIndicator size="small" color={Theme.colors.primary} />
@@ -222,8 +215,6 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
                         )}
                      </View>
                   </TouchableWithoutFeedback>
-              )}
-                 </View>
               )}
 
               <View style={styles.slideCard}>
