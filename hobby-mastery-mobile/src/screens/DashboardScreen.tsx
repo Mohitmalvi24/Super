@@ -16,7 +16,7 @@ import { PracticeTab } from '../components/PracticeTab';
 import { ProfileTab } from '../components/ProfileTab';
 import { LearnTab } from '../components/LearnTab';
 import { Theme } from '../utils/theme';
-import { Technique } from '../types';
+import { Technique, ChallengeType } from '../types';
 import { VisualImageService } from '../services/VisualImageService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -141,13 +141,14 @@ export const DashboardScreen = () => {
 
   const {
     plan, updateTechniqueStatus, clearPlan,
-    totalXp, challengesCompleted, addXp, incrementChallenges,
+    totalXp, challengesCompleted, addXp, incrementChallenges, userName,
   } = ctx;
 
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [activePracticeId, setActivePracticeId] = useState<string | null>(null);
   const [activeStoryId, setActiveStoryId] = useState<string | null>(null);
+  const [activeChallenge, setActiveChallenge] = useState<any | null>(null);
   const [completedTechnique, setCompletedTechnique] = useState<Technique | null>(null);
   const [techniqueImages, setTechniqueImages] = useState<Record<string, string>>({});
 
@@ -159,13 +160,14 @@ export const DashboardScreen = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    const isSubScreenOpen = !!(activeLessonId || activePracticeId || activeStoryId);
+    const isSubScreenOpen = !!(activeLessonId || activePracticeId || activeStoryId || activeChallenge);
 
     const onHardwareBackPress = () => {
       if (isSubScreenOpen) {
         setActiveLessonId(null);
         setActivePracticeId(null);
         setActiveStoryId(null);
+        setActiveChallenge(null);
         setActiveTab('home');
         return true;
       }
@@ -174,7 +176,7 @@ export const DashboardScreen = () => {
 
     const subscription = BackHandler.addEventListener('hardwareBackPress', onHardwareBackPress);
     return () => subscription.remove();
-  }, [activeLessonId, activePracticeId, activeStoryId]);
+  }, [activeLessonId, activePracticeId, activeStoryId, activeChallenge]);
 
   const metrics = useMemo(() => {
     if (!plan?.techniques) return null;
@@ -280,6 +282,44 @@ export const DashboardScreen = () => {
     }
   }
 
+  
+  if (activeChallenge) {
+    const dummyTech = {
+      id: activeChallenge.id,
+      name: 'Daily Challenge',
+      description: activeChallenge.description,
+      category: 'Challenge',
+      emoji: activeChallenge.emoji,
+      estimatedMinutes: activeChallenge.durationMinutes,
+      level: plan.targetLevel,
+      visualDescription: activeChallenge.visualHint,
+      status: 'learning',
+      lesson: {
+        overview: '',
+        steps: [],
+        exercise: {
+          durationMinutes: activeChallenge.durationMinutes,
+          title: activeChallenge.title,
+          goal: activeChallenge.description,
+          instruction: activeChallenge.content
+        },
+        proTips: []
+      },
+      keyTakeaways: []
+    };
+
+    return (
+      <PracticeDrillScreen
+        technique={dummyTech as any}
+        onBack={() => setActiveChallenge(null)}
+        onComplete={() => {
+          setActiveChallenge(null);
+          handleChallengeComplete(activeChallenge.xpReward);
+        }}
+      />
+    );
+  }
+
   if (activeStoryId) {
     const tech = plan.techniques.find(t => t.id === activeStoryId);
     if (tech) {
@@ -376,7 +416,7 @@ export const DashboardScreen = () => {
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <Text style={styles.greeting}>{getGreeting()}, Alex</Text>
+          <Text style={styles.greeting}>{getGreeting()}, {userName || 'Learner'}</Text>
           <Text style={styles.headerSub}>Ready to sharpen your {plan.hobby.toLowerCase()} today?</Text>
         </View>
         <View style={styles.headerBadges}>
@@ -464,6 +504,7 @@ export const DashboardScreen = () => {
         hobby={plan.hobby}
         completedChallenges={challengesCompleted}
         onChallengeComplete={handleChallengeComplete}
+        onStartChallenge={(challenge) => setActiveChallenge(challenge)}
       />
 
       <View style={styles.sectionHeader}>
@@ -530,6 +571,7 @@ export const DashboardScreen = () => {
             plan={plan}
             totalXp={totalXp}
             challengesCompleted={challengesCompleted}
+            userName={userName}
             onReset={handleReset}
           />
         )}

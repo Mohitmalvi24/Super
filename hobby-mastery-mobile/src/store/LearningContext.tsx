@@ -10,11 +10,13 @@ interface LearningContextType {
   isRegenerating: boolean;
   totalXp: number;
   challengesCompleted: number;
+  userName: string | null;
   setPlan: (plan: LearningPlan) => Promise<void>;
   updateTechniqueStatus: (techniqueId: string, status: TechniqueStatus) => Promise<void>;
   clearPlan: () => Promise<void>;
   addXp: (amount: number) => void;
   incrementChallenges: () => void;
+  setUserName: (name: string) => Promise<void>;
 }
 
 export const LearningContext = createContext<LearningContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [totalXp, setTotalXp] = useState(0);
   const [challengesCompleted, setChallengesCompleted] = useState(0);
+  const [userName, setUserNameState] = useState<string | null>(null);
 
   useEffect(() => {
     loadInitialData();
@@ -32,6 +35,10 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
 
   const loadInitialData = async () => {
     const savedPlan = await StorageService.loadPlan();
+    const savedName = await StorageService.loadUserName();
+    if (savedName) {
+      setUserNameState(savedName);
+    }
     if (savedPlan) {
       const hasLesson = savedPlan.techniques?.length > 0 && savedPlan.techniques[0].lesson;
       if (!hasLesson) {
@@ -114,6 +121,11 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
     await StorageService.clearPlan();
   };
 
+  const setUserName = async (name: string) => {
+    setUserNameState(name);
+    await StorageService.saveUserName(name);
+  };
+
   const addXp = (amount: number) => {
     setTotalXp(prev => prev + amount);
   };
@@ -128,11 +140,13 @@ export const LearningProvider = ({ children }: { children: ReactNode }) => {
     isRegenerating,
     totalXp,
     challengesCompleted,
+    userName,
     setPlan,
     updateTechniqueStatus,
     clearPlan,
     addXp,
     incrementChallenges,
+    setUserName,
   };
 
   return (

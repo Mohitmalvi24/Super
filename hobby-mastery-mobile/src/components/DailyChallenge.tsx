@@ -14,6 +14,7 @@ interface DailyChallengeProps {
   hobby: string;
   completedChallenges: number;
   onChallengeComplete: (xp: number) => void;
+  onStartChallenge?: (challenge: ChallengeType) => void;
 }
 
 const normalize = (value: string): string => value.trim().toLowerCase();
@@ -67,7 +68,7 @@ const ChallengeVisual = ({ hobby, imageUri }: { hobby: string; imageUri?: string
   return <View style={styles.visualFallback}><Feather name="target" size={34} color={Theme.colors.primary} /></View>;
 };
 
-export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete }: DailyChallengeProps) => {
+export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete, onStartChallenge }: DailyChallengeProps) => {
   const [challenge, setChallenge] = useState<ChallengeType | null>(null);
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
@@ -116,6 +117,16 @@ export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete
     }
   };
 
+  const startChallenge = useCallback(() => {
+    if (completed || !challenge) return;
+    if (onStartChallenge) {
+      onStartChallenge(challenge);
+    } else {
+      // Fallback
+      completeChallenge();
+    }
+  }, [completed, challenge, onStartChallenge]);
+
   const completeChallenge = useCallback(() => {
     if (completed || !challenge) return;
 
@@ -160,7 +171,7 @@ export const DailyChallenge = ({ hobby, completedChallenges, onChallengeComplete
           </View>
 
           {!completed ? (
-            <TouchableOpacity style={styles.primaryButton} onPress={completeChallenge} activeOpacity={0.85}>
+            <TouchableOpacity style={styles.primaryButton} onPress={startChallenge} activeOpacity={0.85}>
               <Text style={styles.primaryButtonText}>
                 {getHobbyKind(hobby) === 'chess' ? 'Start Puzzle' : 'Start Drill'}
               </Text>

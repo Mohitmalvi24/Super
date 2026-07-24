@@ -7,12 +7,13 @@ import { LearningProvider, LearningContext } from './src/store/LearningContext';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { DashboardScreen } from './src/screens/DashboardScreen';
 import { PrivacyPolicyScreen } from './src/screens/PrivacyPolicyScreen';
+import { NameEntryScreen } from './src/screens/NameEntryScreen';
 import AppLogo from './assets/AppRealLogo.png'
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const { plan, isLoading } = useContext(LearningContext) || { plan: null, isLoading: true };
+  const { plan, isLoading, userName, setUserName } = useContext(LearningContext) || { plan: null, isLoading: true, userName: null, setUserName: async () => {} };
   const [showSplash, setShowSplash] = useState(true);
 
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
@@ -49,6 +50,16 @@ const AppNavigator = () => {
           <Text style={styles.splashSubtitle}>Learn something new every day.</Text>
         </Animated.View>
       </Animated.View>
+    );
+  }
+
+  if (!userName) {
+    return (
+      <NameEntryScreen
+        onSubmit={async (name) => {
+          await setUserName(name);
+        }}
+      />
     );
   }
 

@@ -10,10 +10,11 @@ interface ProfileTabProps {
   plan: LearningPlan;
   totalXp: number;
   challengesCompleted: number;
+  userName?: string | null;
   onReset: () => void;
 }
 
-export const ProfileTab = ({ plan, totalXp, challengesCompleted, onReset }: ProfileTabProps) => {
+export const ProfileTab = ({ plan, totalXp, challengesCompleted, userName, onReset }: ProfileTabProps) => {
   const navigation = useNavigation<any>();
   const currentLevel = Math.floor(totalXp / 500) + 1;
   const xpInCurrentLevel = totalXp % 500;
@@ -36,7 +37,7 @@ export const ProfileTab = ({ plan, totalXp, challengesCompleted, onReset }: Prof
             <Text style={styles.avatarEmoji}>👤</Text>
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.name}>Hobbyist</Text>
+            <Text style={styles.name}>{userName || 'Hobbyist'}</Text>
             <View style={styles.titleBadge}>
               <Text style={styles.titleBadgeText}>{plan.targetLevel} {plan.hobby} Learner</Text>
             </View>

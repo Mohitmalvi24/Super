@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
-  Dimensions, TouchableWithoutFeedback, Linking
+  Dimensions, TouchableWithoutFeedback, ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
+import YoutubePlayer from 'react-native-youtube-iframe';
 import { Theme } from '../utils/theme';
 import { Technique } from '../types';
-import { YouTubeShortsPlayer } from './YouTubeShortsPlayer';
+import { YouTubeShortsService, YouTubeShort } from '../services/YouTubeShortsService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const STORY_DURATION = 5000;
@@ -29,7 +30,12 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const [quizAnswered, setQuizAnswered] = useState(false);
+  const [shorts, setShorts] = useState<YouTubeShort[]>([]);
+  const [loadingShorts, setLoadingShorts] = useState(true);
+
+  const progressAnim = useRef(new Animated.Value(0)).current;
 
   const quiz = (technique.lesson as any).quickQuestion || {
     question: `What is the primary focus of ${technique.name}?`,
@@ -40,7 +46,14 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
     ]
   };
 
-  const progressAnim = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const fetchShorts = async () => {
+      const results = await YouTubeShortsService.fetchShorts(technique.name);
+      setShorts(results);
+      setLoadingShorts(false);
+    };
+    fetchShorts();
+  }, [technique.name]);
 
   useEffect(() => {
     progressAnim.setValue(0);
@@ -49,7 +62,13 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
       return;
     }
 
-    if (!isPaused) {
+    // If we have a video for this slide, don't use the timer.
+    // The video ending will trigger the next slide.
+    if (shorts[currentIndex]) {
+      return;
+    }
+
+    if (!isPaused && !loadingShorts) {
       Animated.timing(progressAnim, {
         toValue: 1,
         duration: STORY_DURATION,
@@ -62,7 +81,7 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
     } else {
       progressAnim.stopAnimation();
     }
-  }, [currentIndex, isPaused]);
+  }, [currentIndex, isPaused, shorts, loadingShorts]);
 
   const handleNext = () => {
     if (currentIndex < slides.length - 1) {
@@ -89,8 +108,7 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
     }
   };
 
-  const handleHoldIn = () => setIsPaused(true);
-  const handleHoldOut = () => setIsPaused(false);
+  
 
   const handleQuizSelect = (isCorrect: boolean) => {
     Haptics.impactAsync(isCorrect ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Heavy);
@@ -101,6 +119,13 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
   };
 
   const currentSlide = slides[currentIndex];
+  const currentShort = shorts[currentIndex];
+
+  const onStateChange = (state: string) => {
+    if (state === 'ended') {
+      handleNext();
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -117,15 +142,22 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
         />
       </LinearGradient>
 
+      
+      
+      
+
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.progressContainer}>
           {slides.map((_, i) => (
             <View key={i} style={styles.progressBarBg}>
-              {i === currentIndex && (
+              {i === currentIndex && !currentShort && !loadingShorts && (
                 <Animated.View style={[
                   styles.progressBarFill, 
                   { width: progressAnim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] }) }
                 ]} />
+              )}
+               {i === currentIndex && currentShort && (
+                <View style={[styles.progressBarFill, { width: '50%', backgroundColor: Theme.colors.primary }]} />
               )}
               {i < currentIndex && <View style={[styles.progressBarFill, { width: '100%' }]} />}
             </View>
@@ -143,18 +175,60 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
         {currentSlide.type !== 'quiz' ? (
           <TouchableWithoutFeedback 
             onPress={handlePress}
-            onPressIn={handleHoldIn}
-            onPressOut={handleHoldOut}
+            
           >
             <View style={styles.contentArea}>
+              
+              
+
+              
+
+              
+              {loadingShorts && !currentShort && (
+                <View style={styles.loadingContainer}>
+                   <ActivityIndicator size="small" color={Theme.colors.primary} />
+                   <Text style={styles.loadingText}>Loading video...</Text>
+                </View>
+              )}
+
+              {currentShort && (
+                 <TouchableWithoutFeedback onPress={() => setIsPaused(!isPaused)}>
+                     <View style={[styles.videoContainer, { alignItems: 'center', justifyContent: 'center' }]}>
+                        <View style={{ width: ((SCREEN_WIDTH * 0.7) * (16/9)) * (16/9), height: (SCREEN_WIDTH * 0.7) * (16/9), alignItems: 'center' }}>
+                          <YoutubePlayer
+                            height={(SCREEN_WIDTH * 0.7) * (16/9)}
+                            width={((SCREEN_WIDTH * 0.7) * (16/9)) * (16/9)}
+                            play={isVideoReady && !isPaused}
+                            videoId={currentShort.videoId}
+                            onChangeState={onStateChange}
+                            onReady={() => setIsVideoReady(true)}
+                            initialPlayerParams={{
+                              controls: false,
+                              modestbranding: true,
+                              rel: false,
+                            }}
+                          />
+                        </View>
+                        {!isVideoReady && (
+                          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }]}>
+                            <ActivityIndicator size="large" color={Theme.colors.primary} />
+                            <Text style={{color: 'rgba(255,255,255,0.7)', marginTop: 10, fontSize: 12}}>Loading video...</Text>
+                          </View>
+                        )}
+                        {isVideoReady && isPaused && (
+                          <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center' }]}>
+                            <Feather name="play-circle" size={64} color="rgba(255,255,255,0.9)" />
+                          </View>
+                        )}
+                     </View>
+                  </TouchableWithoutFeedback>
+              )}
+                 </View>
+              )}
+
               <View style={styles.slideCard}>
                 <Text style={styles.slideTitle}>{currentSlide.title}</Text>
                 <Text style={styles.slideBody}>{currentSlide.content}</Text>
-                
-                <YouTubeShortsPlayer
-                  query={technique.name}
-                  visible={currentSlide.type !== 'quiz'}
-                />
               </View>
             </View>
           </TouchableWithoutFeedback>
@@ -251,7 +325,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
@@ -271,25 +345,47 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     padding: 20,
-    paddingBottom: 60,
+    paddingBottom: 30,
   },
+  
+  videoContainer: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    alignSelf: 'center',
+    backgroundColor: '#000',
+    width: SCREEN_WIDTH * 0.7,
+    height: (SCREEN_WIDTH * 0.7) * (16/9),
+    marginBottom: 24,
+  },
+  loadingContainer: {
+    height: (SCREEN_WIDTH * 0.7) * (16/9),
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  loadingText: {
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 10,
+    fontSize: 14,
+  },
+  
   slideCard: {
     backgroundColor: 'rgba(255,255,255,0.15)',
-    padding: 24,
+    padding: 20,
     borderRadius: Theme.borderRadius.xl,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.2)',
+    marginTop: 16,
   },
   slideTitle: {
     ...Theme.typography.headingLg,
     color: '#FFFFFF',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   slideBody: {
     ...Theme.typography.bodyLg,
     color: 'rgba(255,255,255,0.9)',
-    lineHeight: 26,
-    marginBottom: 20,
+    lineHeight: 24,
   },
 
   quizArea: {
