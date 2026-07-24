@@ -4,7 +4,7 @@
     "slug": "zovian",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/AppRealLogo.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
@@ -13,10 +13,9 @@
       "versionCode": 1,
       "permissions": [],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#1743D7",
+        "foregroundImage": "./assets/AppRealLogo.png",
+        "monochromeImage": "./assets/AppRealLogo.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.mohit24.hobbymasterymobile"
