@@ -1,14 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
-  Dimensions,
+  Dimensions, Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Theme } from '../utils/theme';
 import { Technique } from '../types';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface CompletionScreenProps {
   technique: Technique;
@@ -29,16 +30,18 @@ export const CompletionScreen = ({
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const progressAnim = useRef(new Animated.Value(progressBefore)).current;
+  const slideUpAnim = useRef(new Animated.Value(50)).current;
 
   useEffect(() => {
     Animated.sequence([
       Animated.parallel([
-        Animated.spring(scaleAnim, { toValue: 1, friction: 6, useNativeDriver: true }),
+        Animated.spring(scaleAnim, { toValue: 1, friction: 5, tension: 40, useNativeDriver: true }),
         Animated.timing(fadeAnim, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(slideUpAnim, { toValue: 0, duration: 500, useNativeDriver: true }),
       ]),
       Animated.timing(progressAnim, {
         toValue: progressNow,
-        duration: 1000,
+        duration: 1200,
         useNativeDriver: false,
       }),
     ]).start();
@@ -50,190 +53,245 @@ export const CompletionScreen = ({
   });
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.closeBtn} onPress={onBackToHome}>
-          <Feather name="x" size={20} color={Theme.colors.text.primary} />
-        </TouchableOpacity>
-        
-        <Animated.View style={[styles.starContainer, { transform: [{ scale: scaleAnim }] }]}>
-          <Text style={styles.starEmoji}>🌟</Text>
-        </Animated.View>
-        
-        <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
-          <Text style={styles.title}>Well done!</Text>
-          <Text style={styles.subtitle}>You've completed</Text>
-          <Text style={styles.techniqueName}>{technique.name}</Text>
-        </Animated.View>
-      </View>
+    <View style={styles.container}>
+      <LinearGradient
+        colors={[Theme.colors.palette.blue[900], Theme.colors.palette.blue[700], Theme.colors.palette.blue[500]]}
+        style={styles.headerBackground}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+      >
+        <SafeAreaView edges={['top']} style={styles.headerSafeArea}>
+          <TouchableOpacity style={styles.closeBtn} onPress={onBackToHome}>
+            <Feather name="x" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+          
+          <Animated.View style={[styles.badgeContainer, { transform: [{ scale: scaleAnim }] }]}>
+            <LinearGradient
+              colors={['#FCD34D', '#F59E0B', '#D97706']}
+              style={styles.badgeGradient}
+            >
+              <Feather name="award" size={48} color="#FFFFFF" />
+            </LinearGradient>
+            <View style={styles.badgeGlow} />
+          </Animated.View>
+          
+          <Animated.View style={{ opacity: fadeAnim, alignItems: 'center' }}>
+            <Text style={styles.title}>Lesson Complete!</Text>
+            <View style={styles.techniquePill}>
+              <Text style={styles.techniqueName}>{technique.name}</Text>
+            </View>
+          </Animated.View>
+        </SafeAreaView>
+      </LinearGradient>
 
       <Animated.ScrollView
-        style={[styles.content, { opacity: fadeAnim }]}
+        style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideUpAnim }] }]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statEmoji}>💎</Text>
-            <Text style={styles.statValue}>+{xpEarned} XP</Text>
-            <Text style={styles.statLabel}>Experience earned</Text>
+            <View style={[styles.statIconWrapper, { backgroundColor: Theme.colors.palette.blue[50] }]}>
+              <Feather name="zap" size={24} color={Theme.colors.palette.blue[600]} />
+            </View>
+            <View>
+              <Text style={styles.statValue}>+{xpEarned} XP</Text>
+              <Text style={styles.statLabel}>Experience</Text>
+            </View>
           </View>
+          
           <View style={styles.statCard}>
-            <Text style={styles.statEmoji}>🔥</Text>
-            <Text style={styles.statValue}>{streakCount} Days</Text>
-            <Text style={styles.statLabel}>Streak updated</Text>
+            <View style={[styles.statIconWrapper, { backgroundColor: Theme.colors.palette.amber[50] }]}>
+              <Feather name="trending-up" size={24} color={Theme.colors.palette.amber[500]} />
+            </View>
+            <View>
+              <Text style={styles.statValue}>{streakCount} Days</Text>
+              <Text style={styles.statLabel}>Current Streak</Text>
+            </View>
           </View>
         </View>
 
         <View style={styles.progressCard}>
-          <Text style={styles.progressTitle}>Your Progress</Text>
-          <View style={styles.progressLabels}>
-            <View>
-              <Text style={styles.progressNum}>{progressBefore}%</Text>
-              <Text style={styles.progressSub}>Before</Text>
-            </View>
-            <Feather name="chevrons-up" size={24} color={Theme.colors.success} />
-            <View>
-              <Text style={styles.progressNumSuccess}>{progressNow}%</Text>
-              <Text style={styles.progressSub}>Now</Text>
-            </View>
-          </View>
+          <Text style={styles.progressTitle}>Mastery Progress</Text>
           <View style={styles.progressBarContainer}>
             <Animated.View style={[styles.progressBarFill, { width: progressWidth }]} />
-            <View style={styles.progressKnob} />
+            <Animated.View style={[styles.progressKnob, { left: progressWidth }]} />
+          </View>
+          <View style={styles.progressLabels}>
+            <Text style={styles.progressSub}>{progressBefore}% Before</Text>
+            <Text style={styles.progressNumSuccess}>{progressNow}% Now</Text>
           </View>
         </View>
 
         {nextTechnique && (
           <View style={styles.nextSection}>
-            <Text style={styles.nextTitle}>What's Next?</Text>
-            <Text style={styles.nextSub}>Keep going! Your next lesson is ready.</Text>
-            
-            <View style={styles.nextCard}>
+            <Text style={styles.nextSectionTitle}>Up Next</Text>
+            <TouchableOpacity style={styles.nextCard} activeOpacity={0.9} onPress={onContinue}>
               <View style={styles.nextVisual}>
-                <Text style={{ fontSize: 32 }}>{nextTechnique.emoji || '🎯'}</Text>
+                <Feather name="play-circle" size={28} color={Theme.colors.primary} />
               </View>
               <View style={styles.nextInfo}>
-                <View style={styles.nextTag}>
-                  <Text style={styles.nextTagText}>Next Lesson</Text>
-                </View>
                 <Text style={styles.nextName}>{nextTechnique.name}</Text>
-                <Text style={styles.nextDesc} numberOfLines={2}>
+                <Text style={styles.nextDesc} numberOfLines={1}>
                   {nextTechnique.description}
                 </Text>
                 <View style={styles.nextMeta}>
-                  <Feather name="clock" size={12} color={Theme.colors.text.muted} />
+                  <Feather name="clock" size={14} color={Theme.colors.text.muted} />
                   <Text style={styles.nextMetaText}>{nextTechnique.estimatedMinutes} min</Text>
                   <View style={styles.levelTag}>
-                    <Text style={styles.levelTagText}>{nextTechnique.level}</Text>
+                    <Text style={styles.levelTagText}>{nextTechnique.level.toUpperCase()}</Text>
                   </View>
                 </View>
               </View>
-              <Feather name="chevron-right" size={20} color={Theme.colors.text.muted} />
-            </View>
+            </TouchableOpacity>
           </View>
         )}
       </Animated.ScrollView>
 
-      <View style={styles.footer}>
+      <SafeAreaView edges={['bottom']} style={styles.footer}>
         {nextTechnique ? (
-          <TouchableOpacity style={styles.primaryBtn} onPress={onContinue} activeOpacity={0.8}>
-            <Text style={styles.primaryBtnText}>Continue Journey</Text>
-            <Feather name="chevron-right" size={20} color="#FFFFFF" />
+          <TouchableOpacity style={styles.primaryBtn} onPress={onContinue} activeOpacity={0.85}>
+            <LinearGradient
+              colors={[Theme.colors.primary, Theme.colors.palette.blue[700]]}
+              style={styles.btnGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.primaryBtnText}>Continue Journey</Text>
+              <Feather name="arrow-right" size={20} color="#FFFFFF" />
+            </LinearGradient>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.primaryBtn} onPress={onBackToHome} activeOpacity={0.8}>
-            <Text style={styles.primaryBtnText}>Back to Home</Text>
+          <TouchableOpacity style={styles.primaryBtn} onPress={onBackToHome} activeOpacity={0.85}>
+            <LinearGradient
+              colors={[Theme.colors.primary, Theme.colors.palette.blue[700]]}
+              style={styles.btnGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.primaryBtnText}>Back to Home</Text>
+            </LinearGradient>
           </TouchableOpacity>
         )}
         
         {nextTechnique && (
-          <TouchableOpacity style={styles.secondaryBtn} onPress={onBackToHome} activeOpacity={0.8}>
-            <Text style={styles.secondaryBtnText}>Back to Home</Text>
+          <TouchableOpacity style={styles.secondaryBtn} onPress={onBackToHome} activeOpacity={0.7}>
+            <Text style={styles.secondaryBtnText}>Return to Dashboard</Text>
           </TouchableOpacity>
         )}
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: Theme.colors.background,
   },
-  header: {
+  headerBackground: {
+    paddingBottom: 40,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    ...Theme.shadow.lg,
+  },
+  headerSafeArea: {
     alignItems: 'center',
-    paddingTop: 40,
-    paddingBottom: 20,
     position: 'relative',
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
   },
   closeBtn: {
     position: 'absolute',
-    top: 16,
+    top: Platform.OS === 'android' ? 24 : 16,
     left: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Theme.colors.surface,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    ...Theme.shadow.sm,
-    borderWidth: 1,
-    borderColor: Theme.colors.borderLight,
+    zIndex: 10,
   },
-  starContainer: {
-    marginBottom: 20,
+  badgeContainer: {
+    marginTop: 20,
+    marginBottom: 24,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  starEmoji: {
-    fontSize: 100,
+  badgeGradient: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+    borderWidth: 4,
+    borderColor: '#FFFFFF',
+    ...Theme.shadow.md,
+  },
+  badgeGlow: {
+    position: 'absolute',
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#FCD34D',
+    opacity: 0.3,
+    zIndex: 1,
   },
   title: {
     ...Theme.typography.displayMd,
-    color: Theme.colors.text.primary,
-    marginBottom: 4,
+    color: '#FFFFFF',
+    fontWeight: '800',
+    marginBottom: 12,
   },
-  subtitle: {
-    ...Theme.typography.bodyMd,
-    color: Theme.colors.text.secondary,
-    marginBottom: 4,
+  techniquePill: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: Theme.borderRadius.full,
   },
   techniqueName: {
-    ...Theme.typography.displaySm,
-    color: Theme.colors.primary,
+    ...Theme.typography.headingSm,
+    color: '#FFFFFF',
   },
 
   content: {
     flex: 1,
+    marginTop: -20,
   },
   scrollContent: {
     paddingHorizontal: 20,
+    paddingTop: 40,
     paddingBottom: 40,
   },
 
   statsRow: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 16,
     marginBottom: 24,
   },
   statCard: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Theme.colors.surface,
     borderRadius: Theme.borderRadius.xl,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Theme.colors.borderLight,
+    padding: 16,
     ...Theme.shadow.sm,
   },
-  statEmoji: {
-    fontSize: 28,
-    marginBottom: 12,
+  statIconWrapper: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   statValue: {
     ...Theme.typography.headingLg,
-    color: Theme.colors.primary,
-    marginBottom: 4,
+    color: Theme.colors.text.primary,
+    marginBottom: 2,
   },
   statLabel: {
     ...Theme.typography.caption,
@@ -244,90 +302,77 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.surface,
     borderRadius: Theme.borderRadius.xl,
     padding: 24,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Theme.colors.borderLight,
     ...Theme.shadow.sm,
     marginBottom: 32,
   },
   progressTitle: {
     ...Theme.typography.headingMd,
     color: Theme.colors.text.primary,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   progressLabels: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    width: '80%',
-    marginBottom: 24,
-  },
-  progressNum: {
-    ...Theme.typography.headingLg,
-    color: Theme.colors.text.secondary,
-    textAlign: 'center',
+    marginTop: 12,
   },
   progressNumSuccess: {
-    ...Theme.typography.headingLg,
-    color: Theme.colors.success,
-    textAlign: 'center',
+    ...Theme.typography.bodyMd,
+    fontWeight: '700',
+    color: Theme.colors.primary,
   },
   progressSub: {
-    ...Theme.typography.caption,
+    ...Theme.typography.bodySm,
     color: Theme.colors.text.muted,
-    textAlign: 'center',
   },
   progressBarContainer: {
     width: '100%',
-    height: 12,
-    backgroundColor: Theme.colors.palette.blue[100],
-    borderRadius: 6,
+    height: 14,
+    backgroundColor: Theme.colors.palette.slate[100],
+    borderRadius: 7,
     position: 'relative',
     justifyContent: 'center',
   },
   progressBarFill: {
-    height: 12,
+    height: 14,
     backgroundColor: Theme.colors.primary,
-    borderRadius: 6,
+    borderRadius: 7,
   },
   progressKnob: {
     position: 'absolute',
-    right: 0,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#FFFFFF',
     borderWidth: 4,
     borderColor: Theme.colors.primary,
+    top: -5,
+    marginLeft: -12,
+    ...Theme.shadow.sm,
   },
 
   nextSection: {
-    alignItems: 'center',
+    marginTop: 8,
   },
-  nextTitle: {
+  nextSectionTitle: {
     ...Theme.typography.headingMd,
     color: Theme.colors.text.primary,
-    marginBottom: 4,
-  },
-  nextSub: {
-    ...Theme.typography.bodySm,
-    color: Theme.colors.text.secondary,
     marginBottom: 16,
   },
   nextCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Theme.colors.successLight,
+    backgroundColor: Theme.colors.surface,
     borderRadius: Theme.borderRadius.xl,
     padding: 16,
+    ...Theme.shadow.sm,
     borderWidth: 1,
-    borderColor: Theme.colors.successBorder,
+    borderColor: Theme.colors.borderLight,
   },
   nextVisual: {
-    width: 80,
-    height: 80,
-    backgroundColor: 'rgba(255,255,255,0.5)',
-    borderRadius: Theme.borderRadius.lg,
+    width: 60,
+    height: 60,
+    backgroundColor: Theme.colors.palette.blue[50],
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -335,20 +380,8 @@ const styles = StyleSheet.create({
   nextInfo: {
     flex: 1,
   },
-  nextTag: {
-    backgroundColor: 'rgba(16,185,129,0.15)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginBottom: 6,
-  },
-  nextTagText: {
-    ...Theme.typography.caption,
-    color: Theme.colors.successDark,
-  },
   nextName: {
-    ...Theme.typography.headingMd,
+    ...Theme.typography.headingSm,
     color: Theme.colors.text.primary,
     marginBottom: 4,
   },
@@ -365,33 +398,39 @@ const styles = StyleSheet.create({
   nextMetaText: {
     ...Theme.typography.caption,
     color: Theme.colors.text.muted,
-    marginRight: 8,
+    marginRight: 12,
   },
   levelTag: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    backgroundColor: Theme.colors.palette.slate[100],
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   levelTagText: {
     fontSize: 10,
-    color: Theme.colors.successDark,
-    fontWeight: '600',
+    color: Theme.colors.text.secondary,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 
   footer: {
     paddingHorizontal: 20,
-    paddingVertical: 20,
-    backgroundColor: '#FAFAFA',
+    paddingVertical: 16,
+    backgroundColor: Theme.colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: Theme.colors.borderLight,
   },
   primaryBtn: {
+    borderRadius: Theme.borderRadius.xl,
+    overflow: 'hidden',
+    marginBottom: 12,
+    ...Theme.shadow.md,
+  },
+  btnGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Theme.colors.primary,
-    paddingVertical: 16,
-    borderRadius: Theme.borderRadius.xl,
-    marginBottom: 12,
+    paddingVertical: 18,
   },
   primaryBtnText: {
     ...Theme.typography.headingMd,
@@ -400,10 +439,12 @@ const styles = StyleSheet.create({
   },
   secondaryBtn: {
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   secondaryBtnText: {
-    ...Theme.typography.headingSm,
-    color: Theme.colors.primary,
+    ...Theme.typography.bodyLg,
+    color: Theme.colors.text.secondary,
+    fontWeight: '600',
   },
 });
+

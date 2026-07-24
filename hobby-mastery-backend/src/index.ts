@@ -4,6 +4,7 @@ import cors from 'cors';
 import planRoutes from './routes/plan.routes';
 import challengeRoutes from './routes/challenge.routes';
 import videoRoutes from './routes/video.routes';
+import youtubeRoutes from './routes/youtube.routes';
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 app.use('/api/plan', planRoutes);
 app.use('/api/challenge', challengeRoutes);
 app.use('/api/video', videoRoutes);
+app.use('/api/youtube', youtubeRoutes);
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() });

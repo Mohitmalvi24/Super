@@ -52,65 +52,7 @@ export const VideoSection = ({
     setShouldShowError(false);
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Video Tutorial</Text>
-        <Text style={styles.subtitle}>Learn by watching</Text>
-      </View>
-
-      {video ? (
-        <VideoPlayer
-          video={video}
-          isLoading={isLoading}
-          error={shouldShowError ? error : null}
-          fallbackEmoji={technique.emoji}
-          fallbackHobby={hobby}
-          fallbackTechnique={technique}
-          onRetry={retry}
-        />
-      ) : isLoading || !shouldShowError ? (
-        <VideoPlayer
-          video={null}
-          isLoading={isLoading}
-          error={null}
-          fallbackEmoji={technique.emoji}
-          fallbackHobby={hobby}
-          fallbackTechnique={technique}
-        />
-      ) : error ? (
-        <>
-          <VideoPlayer
-            video={null}
-            isLoading={false}
-            error={error}
-            onRetry={retry}
-          />
-          <VideoGenerationButton
-            onPress={retry}
-            isLoading={isLoading}
-            error={null}
-            disabled={false}
-          />
-        </>
-      ) : (
-        <VideoGenerationButton
-          onPress={generateVideo}
-          isLoading={isLoading}
-          error={null}
-          disabled={false}
-        />
-      )}
-
-      {!video && !isLoading && error && (
-        <View style={styles.fallbackTip}>
-          <Text style={styles.fallbackTipText}>
-            💡 If video generation isn't available, use the written steps above to learn.
-          </Text>
-        </View>
-      )}
-    </View>
-  );
+  return null;
 };
 
 const styles = StyleSheet.create({

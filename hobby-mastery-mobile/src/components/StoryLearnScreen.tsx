@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, Animated,
-  Dimensions, TouchableWithoutFeedback
+  Dimensions, TouchableWithoutFeedback, Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { Theme } from '../utils/theme';
 import { Technique } from '../types';
+import { YouTubeShortsPlayer } from './YouTubeShortsPlayer';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const STORY_DURATION = 5000;
@@ -149,6 +150,11 @@ export const StoryLearnScreen = ({ technique, onClose, onComplete }: StoryLearnS
               <View style={styles.slideCard}>
                 <Text style={styles.slideTitle}>{currentSlide.title}</Text>
                 <Text style={styles.slideBody}>{currentSlide.content}</Text>
+                
+                <YouTubeShortsPlayer
+                  query={technique.name}
+                  visible={currentSlide.type !== 'quiz'}
+                />
               </View>
             </View>
           </TouchableWithoutFeedback>
@@ -283,6 +289,7 @@ const styles = StyleSheet.create({
     ...Theme.typography.bodyLg,
     color: 'rgba(255,255,255,0.9)',
     lineHeight: 26,
+    marginBottom: 20,
   },
 
   quizArea: {
